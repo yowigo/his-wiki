@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>HIS医保三层架构流程图</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  body { font-family: "Microsoft YaHei", sans-serif; background: #f5f5f5; padding: 20px; }
+  h1 { text-align: center; color: #333; }
+  h2 { color: #1a5276; border-bottom: 2px solid #1a5276; padding-bottom: 6px; margin-top: 50px; }
+  .chart-container { background: #fff; border-radius: 8px; padding: 30px; margin: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow-x: auto; }
+  .note { background: #fef9e7; border-left: 4px solid #f39c12; padding: 12px 16px; margin: 16px 0; border-radius: 4px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<h1>HIS → 医保总控 → 医保中心：三层架构流程图</h1>
+
+<div class="note">
+<strong>说明：</strong>以上流程图基于 HIS5.0 总控 (zlchs.Interface.Control) 代码绘制。★ 标记为 HIS5.0 相较 HIS5.1 的新增/变化部分。红色节点表示与医保中心的真实交互 (🔗)。
+</div>
+
+<!-- ======================== 图1: 三层职责总览 ======================== -->
+<h2>图1：三层职责与交互总览</h2>
+<div class="chart-container">
+<pre class="mermaid">
+block-beta
+  columns 1
+
+  block:layer1:1
+    columns 3
+    A["🖥️ 第一层：HIS 客户端\n(sdp.cpapi)"]
+    space
+    A_desc["职责：\n• 接收前端请求\n• 反射加载总控 DLL\n• 解析返回值给前端"]
+  end
+
+  space
+
+  block:layer2:1
+    columns 3
+    B["⚙️ 第二层：医保总控\n(zlchs.Interface.Control)"]
+    space
+    B_desc["职责：\n• business_type 路由分发\n• 业务流程编排\n• 动态加载医保 DLL\n• ★ CA签名路由(HIS5.0)"]
+  end
+
+  space
+
+  block:layer3:1
+    columns 3
+    C["🏥 第三层：医保接口实现\n(Cls_Webhis / Cls_BJGJBYB)"]
+    space
+    C_desc["职责：\n• 实现 IInsureInterface\n• 操作本地数据库\n• 🔗 调用医保中心API\n• 返回结算结果"]
+  end
+
+  A --> B
+  B --> C
+
+  style A fill:#3498db,color:#fff
+  style B fill:#e67e22,color:#fff
+  style C fill:#27ae60,color:#fff
+  style A_desc fill:#d6eaf8,stroke:#3498db
+  style B_desc fill:#fdebd0,stroke:#e67e22
+  style C_desc fill:#d5f5e3,stroke:#27ae60
+</pre>
+</div>
+
+<!-- ======================== 图2: 完整调用链路 ======================== -->
+<h2>图2：完整调用链路（门诊结算 1106 为例）</h2>
+<div class="chart-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant HIS as HIS 前端
+    participant WI as WebInsurance<br/>插件
+    participant CT as CommonTools<br/>反射加载
+    participant CM as Common.Interface()<br/>总控入口
+    participant BZ as Business<br/>业务编排
+    participant IB as InsureBusiness<br/>路由代理
+    participant DB as insur.ins_system<br/>数据库
+    participant OR as ObjectReflection<br/>动态加载
+    participant MI as Cls_BJGJBYB<br/>北京医保实现
+    participant YB as 🔗 医保中心
+
+    HIS->>WI: ProcessRequest("Interface", json)
+    WI->>CT: CallBusinessControl(PluginsWebInsurance, InsureControl, json)
+    CT->>CM: Assembly.Load("zlchs.Interface.Control")<br/>反射调用 Interface(json)
+
+    Note over CM: 解析 business_type="1106"<br/>从 token 注入 org_id 等
+    CM->>BZ: ClincSettle(DataIn)
+
+    rect rgb(230, 240, 255)
+        Note over BZ,MI: ① 初始化
+        BZ->>IB: InitInsure(json)
+        IB->>DB: SELECT interface_name<br/>FROM insur.ins_system<br/>WHERE id='002'
+        DB-->>IB: "zlchs.BJ.XBYB.insure"
+        IB->>OR: CreateObject("zlchs.BJ.XBYB.insure", "Cls_", ...)
+        OR-->>IB: new Cls_BJGJBYB()
+        IB->>MI: InitInsure(json)
+        MI-->>IB: true (加载配置参数)
+    end
+
+    rect rgb(255, 243, 224)
+        Note over BZ,YB: ② 预结算
+        BZ->>IB: ClinicPreSwap(json)
+        IB->>MI: ClinicPreSwap(json)
+        MI->>MI: 查询档案 + 费用明细
+        MI->>YB: 🔗 MedicareComHelper.Divide()<br/>费用分解
+        YB-->>MI: 分解结果 XML
+        MI->>MI: 更新 ins_fee_detail
+        MI-->>IB: {code:"1", settle_type:[...]}
+        IB-->>BZ: 预结算结果
+    end
+
+    rect rgb(232, 245, 233)
+        Note over BZ,YB: ③ 正式结算
+        BZ->>IB: ClinicSwap(json)
+        IB->>MI: ClinicSwap(json)
+        MI->>MI: 查询就诊记录
+        MI->>MI: Frm结算报销信息 确认
+        MI->>YB: 🔗 MedicareComHelper.TradeAll()<br/>交易确认
+        YB-->>MI: 结算确认结果
+        MI->>MI: INSERT ins_balance
+        MI-->>IB: {code:"1", settle_type:[...]}
+        IB-->>BZ: 结算结果
+    end
+
+    rect rgb(237, 231, 246)
+        Note over BZ,MI: ④ 查余额
+        BZ->>IB: SelfBalance(json)
+        IB->>MI: SelfBalance(json)
+        MI->>MI: SELECT swap_info->>'选择余额'<br/>FROM insur.ins_archive
+        MI-->>IB: {personal_account:"500.00"}
+        IB-->>BZ: 余额结果
+    end
+
+    BZ-->>CM: {code:"1", data:{settle_type, personal_account, ...}}
+    CM-->>CT: JSON 字符串
+    CT-->>WI: PluginResult.Value = data
+    WI-->>HIS: 显示"结算完成"
+</pre>
+</div>
+
+<!-- ======================== 图3: 各层内部结构 ======================== -->
+<h2>图3：各层内部结构与类关系</h2>
+<div class="chart-container">
+<pre class="mermaid">
+graph TB
+    subgraph L1["第一层：HIS 客户端 (sdp.cpapi)"]
+        direction TB
+        WI[WebInsurance<br/>ProcessRequest] --> WIH[WebInsuranceHelper<br/>Interface]
+        WIH --> CT[CommonTools<br/>CallBusinessControl]
+        CT --> EIM[ExceInsureMethod<br/>Assembly.Load 反射]
+    end
+
+    subgraph L2["第二层：医保总控 (zlchs.Interface.Control)"]
+        direction TB
+        CM[Common.Interface<br/>switch 路由] --> BZ[Business<br/>业务编排]
+        BZ --> IB[InsureBusiness<br/>医保路由代理]
+        BZ --> CA[CAInterfaceBusiness<br/>CA签名路由 ★]
+        IB --> OR[ObjectReflection<br/>动态加载]
+        CA --> OR
+        IB -. 每次调用 .-> IIF[IInsureInterface<br/>54个方法]
+        CA -. 字典缓存 .-> ICAF[I_CAInterface<br/>6个方法 ★]
+    end
+
+    subgraph L3["第三层：医保接口实现"]
+        direction TB
+        CW[Cls_Webhis<br/>测试实现<br/>1538行]
+        CB[Cls_BJGJBYB<br/>北京医保<br/>4622行]
+        CG[Cls_GDYB<br/>广东医保<br/>3796行]
+        CW -.-> DB1[(insur schema<br/>本地数据库)]
+        CB -.-> DB1
+        CB --> HH[HttpHelper<br/>HTTP WebAPI]
+        CB --> MW[MedicareWebHelper<br/>SOAP WebService]
+        CB --> MC[MedicareComHelper<br/>本地医保库]
+        HH --> YB1[🔗 医保中心<br/>HTTP]
+        MW --> YB2[🔗 医保中心<br/>SOAP]
+        MC --> YB3[🔗 医保中心<br/>DLL]
+    end
+
+    EIM ==> CM
+    OR ==> CW
+    OR ==> CB
+    OR ==> CG
+
+    style L1 fill:#d6eaf8,stroke:#2980b9
+    style L2 fill:#fdebd0,stroke:#e67e22
+    style L3 fill:#d5f5e3,stroke:#27ae60
+    style CA fill:#f9e79f,stroke:#f39c12
+    style ICAF fill:#f9e79f,stroke:#f39c12
+    style YB1 fill:#e74c3c,color:#fff
+    style YB2 fill:#e74c3c,color:#fff
+    style YB3 fill:#e74c3c,color:#fff
+</pre>
+</div>
+
+<!-- ======================== 图4: 动态加载机制 ======================== -->
+<h2>图4：动态 DLL 加载机制</h2>
+<div class="chart-container">
+<pre class="mermaid">
+flowchart LR
+    A[InsureBusiness<br/>提取 ins_id] --> B{查库<br/>insur.ins_system}
+    B -->|找到| C[得到 DLL 名称<br/>如 zlchs.BJ.XBYB.insure]
+    B -->|未找到| D[回退测试实现<br/>zlchs.TEST.Insure]
+    C --> E[ObjectReflection<br/>CreateObject]
+    D --> E
+    E --> F{路径检查<br/>path.Contains?}
+    F -->|不包含| G[设置工作目录<br/>Directory.SetCurrentDirectory]
+    F -->|已包含| H[跳过设置 ★]
+    G --> I[Assembly.LoadFrom<br/>加载 DLL 文件]
+    H --> I
+    I --> J[遍历类型<br/>匹配 Cls_ 前缀]
+    J --> K[Activator.CreateInstance<br/>创建实例]
+    K --> L[转换为<br/>IInsureInterface]
+    L --> M[Iinterface = 实例<br/>后续方法委托调用]
+
+    style A fill:#3498db,color:#fff
+    style B fill:#f39c12,color:#fff
+    style E fill:#e67e22,color:#fff
+    style I fill:#8e44ad,color:#fff
+    style L fill:#27ae60,color:#fff
+    style H fill:#f9e79f,stroke:#f39c12
+</pre>
+</div>
+
+<!-- ======================== 图5: Business 编排流程 ======================== -->
+<h2>图5：Business.ClincSettle() 门诊结算编排流程</h2>
+<div class="chart-container">
+<pre class="mermaid">
+flowchart TD
+    START([Business.ClincSettle 开始]) --> INIT[InsureBusiness.InitInsure<br/>初始化医保接口]
+    INIT --> INIT_OK{初始化成功?}
+    INIT_OK -->|失败| ERR1[返回 code:0<br/>初始化失败]
+    INIT_OK -->|成功| SPLIT{is_split == 1?}
+
+    SPLIT -->|是 拆分模式| SWAP[InsureBusiness.ClinicSwap<br/>直接正式结算]
+    SPLIT -->|否 标准模式| PRE[InsureBusiness.ClinicPreSwap<br/>预结算]
+
+    PRE --> PRE_OK{预结算成功?}
+    PRE_OK -->|失败| ERR2[返回 code:0<br/>预结算失败]
+    PRE_OK -->|成功| PRE_SPLIT{返回 is_split == 1?}
+
+    PRE_SPLIT -->|是| BAL[InsureBusiness.SelfBalance<br/>获取账户余额]
+    PRE_SPLIT -->|否| SWAP
+
+    SWAP --> SWAP_OK{结算成功?}
+    SWAP_OK -->|失败| ERR3[返回 code:0<br/>结算失败]
+    SWAP_OK -->|成功| BAL
+
+    BAL --> BAL_OK{余额查询成功?}
+    BAL_OK -->|成功| RET([组织返回值<br/>code:1 + data])
+    BAL_OK -->|失败| DEL[InsureBusiness.ClinicDelSwap<br/>★ 自动撤销结算]
+    DEL --> ERR4[返回 code:0<br/>余额查询失败]
+
+    style START fill:#3498db,color:#fff
+    style RET fill:#27ae60,color:#fff
+    style ERR1 fill:#e74c3c,color:#fff
+    style ERR2 fill:#e74c3c,color:#fff
+    style ERR3 fill:#e74c3c,color:#fff
+    style ERR4 fill:#e74c3c,color:#fff
+    style DEL fill:#f39c12,color:#fff
+</pre>
+</div>
+
+<!-- ======================== 图6: 住院结算超时冲正 ======================== -->
+<h2>图6：住院结算超时冲正机制（SettleSwap）</h2>
+<div class="chart-container">
+<pre class="mermaid">
+flowchart TD
+    START([SettleSwap 开始]) --> QUERY[查询档案 + 就诊记录 + 预结记录]
+    QUERY --> BUILD[构建 2304 请求<br/>psn_no, mdtrt_id, medfee_sumamt...]
+    BUILD --> CALL["🔗 HttpHelper.YBBusiness('2304')<br/>住院结算"]
+
+    CALL --> OK{请求成功?}
+    OK -->|成功| CHECK_ERR{医保误差 > 0.1元?}
+
+    OK -->|失败| TIMEOUT{错误含 'timed out'?}
+    TIMEOUT -->|否| CANCEL[撤销出院登记<br/>返回失败]
+    TIMEOUT -->|是| FLUSH["🔗 HttpHelper.YBBusiness('2601')<br/>冲正交易"]
+
+    FLUSH --> FLUSH_OK{冲正成功?}
+    FLUSH_OK -->|失败| FAIL1[返回 code:0<br/>冲正失败]
+    FLUSH_OK -->|成功| ASK{弹窗: 是否重试结算?}
+    ASK -->|是| CALL
+    ASK -->|否| CANCEL
+
+    CHECK_ERR -->|否| SAVE[INSERT insur.ins_balance<br/>保存结算记录]
+    CHECK_ERR -->|是| FLUSH2["🔗 冲正交易 2601<br/>误差过大自动冲正"]
+    FLUSH2 --> FAIL2[返回 code:0<br/>医保误差超限]
+
+    SAVE --> RET([返回 code:1<br/>结算成功])
+
+    style START fill:#3498db,color:#fff
+    style CALL fill:#e74c3c,color:#fff
+    style FLUSH fill:#e74c3c,color:#fff
+    style FLUSH2 fill:#e74c3c,color:#fff
+    style RET fill:#27ae60,color:#fff
+    style FAIL1 fill:#7f8c8d,color:#fff
+    style FAIL2 fill:#7f8c8d,color:#fff
+    style CANCEL fill:#7f8c8d,color:#fff
+</pre>
+</div>
+
+<!-- ======================== 图7: HIS5.0 CA 签名流程 ======================== -->
+<h2>图7：★ HIS5.0 新增 — CA 签名调用链路</h2>
+<div class="chart-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant HIS as HIS 前端
+    participant CM as Common.Interface()
+    participant BZ as Business
+    participant CAB as CAInterfaceBusiness
+    participant OR as ObjectReflection
+    participant CA as CA签名实现<br/>(CA_ 前缀类)
+
+    HIS->>CM: {business_type:"8004", interface_name:"xxx.CA.dll", signData:{...}}
+
+    Note over CM: ★ businesstype.StartsWith("8")<br/>跳过 token 解析
+
+    CM->>BZ: SendSginData(json)
+
+    Note over BZ: 查询医生信息<br/>qw_base.b_staff
+
+    BZ->>CAB: SendSginData(json)
+    CAB->>CAB: 提取 interface_name
+    CAB->>OR: CreateObject(interfaceName, "CA_", "Plugins.CAInterface")
+
+    Note over CAB: ★ 字典缓存：首次加载后复用
+
+    OR-->>CAB: CA签名实例
+    CAB->>CA: SendSginData(json)
+    CA-->>CAB: 签名结果
+    CAB-->>BZ: 签名结果
+    BZ-->>CM: Response
+    CM-->>HIS: 签名状态 + 二维码
+</pre>
+</div>
+
+<script>
+mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    sequence: { mirrorActors: false, messageAlign: 'left' },
+    flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+});
+</script>
+</body>
+</html>
