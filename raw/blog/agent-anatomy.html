@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGENT — 一份解构手册</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400&family=JetBrains+Mono:wght@300;400;600&family=Noto+Serif+SC:wght@300;400;600;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1a1a;
+    --paper:#f4efe6;
+    --paper-2:#ebe4d5;
+    --rust:#b5432a;
+    --moss:#4a5d3a;
+    --ochre:#c8892e;
+    --indigo:#2a3b5a;
+    --line:#2a2a2a;
+    --muted:#6b6358;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--paper);color:var(--ink)}
+  body{
+    font-family:'Fraunces','Noto Serif SC',Georgia,serif;
+    font-weight:400;
+    line-height:1.55;
+    overflow-x:hidden;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(181,67,42,0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 60%, rgba(42,59,90,0.04) 0%, transparent 50%),
+      repeating-linear-gradient(0deg, transparent 0 39px, rgba(26,26,26,0.025) 39px 40px);
+  }
+  /* grain overlay */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:100;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity:.7;mix-blend-mode:multiply;
+  }
+
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:.02em}
+  .cn{font-family:'Noto Serif SC','Fraunces',serif}
+
+  /* ============ HEADER ============ */
+  header{
+    padding:32px 48px 24px;
+    border-bottom:1px solid var(--ink);
+    display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;
+    position:relative;
+  }
+  header .left{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase}
+  header .right{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;text-align:right;color:var(--muted)}
+  header .mark{
+    width:44px;height:44px;border:1.5px solid var(--ink);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  header .mark::before{content:"";position:absolute;inset:6px;border:1px solid var(--ink);border-radius:50%}
+  header .mark::after{content:"";position:absolute;width:6px;height:6px;background:var(--rust);border-radius:50%}
+
+  /* ============ HERO ============ */
+  .hero{
+    padding:80px 48px 120px;
+    display:grid;grid-template-columns:1.1fr .9fr;gap:48px;
+    border-bottom:1px solid var(--ink);
+    position:relative;
+    align-items:end;
+  }
+  .hero-label{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--rust);margin-bottom:24px;display:flex;align-items:center;gap:12px;
+  }
+  .hero-label::before{content:"";width:24px;height:1px;background:var(--rust)}
+  .hero h1{
+    font-family:'Fraunces',serif;
+    font-size:clamp(64px,11vw,180px);
+    font-weight:300;
+    line-height:.88;
+    letter-spacing:-.04em;
+    font-variation-settings:"opsz" 144;
+  }
+  .hero h1 .italic{font-style:italic;font-weight:400;color:var(--rust)}
+  .hero h1 .eq{
+    font-family:'JetBrains Mono',monospace;
+    font-size:.35em;vertical-align:.8em;color:var(--muted);font-weight:400;
+    margin:0 .2em;
+  }
+  .hero-sub{
+    font-family:'Noto Serif SC',serif;font-weight:300;
+    font-size:15px;line-height:1.8;color:var(--ink);
+    max-width:360px;
+    border-left:1px solid var(--ink);padding-left:20px;
+    margin-left:auto;
+  }
+  .hero-sub .big{display:block;font-size:28px;font-weight:300;line-height:1.3;margin-bottom:16px;font-family:'Fraunces',serif;font-style:italic}
+  .hero-meta{
+    position:absolute;bottom:24px;left:48px;right:48px;
+    display:flex;justify-content:space-between;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+  }
+
+  /* ============ SECTION ============ */
+  section{padding:80px 48px;border-bottom:1px solid var(--ink);position:relative}
+  .sec-head{display:grid;grid-template-columns:120px 1fr auto;gap:24px;align-items:baseline;margin-bottom:64px;padding-bottom:16px;border-bottom:1px dashed var(--ink)}
+  .sec-num{font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.1em}
+  .sec-title{font-family:'Fraunces',serif;font-weight:300;font-size:44px;letter-spacing:-.02em;line-height:1}
+  .sec-title .em{font-style:italic;color:var(--rust)}
+  .sec-meta{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+
+  /* ============ CORE EQUATION DIAGRAM ============ */
+  .equation-scene{
+    display:grid;grid-template-columns:repeat(12,1fr);gap:24px;position:relative;
+    min-height:420px;align-items:center;
+  }
+  .eq-box{
+    border:1.5px solid var(--ink);
+    padding:32px 24px;
+    background:var(--paper);
+    position:relative;
+    transition:transform .4s cubic-bezier(.2,.8,.2,1);
+  }
+  .eq-box:hover{transform:translateY(-4px);box-shadow:6px 6px 0 var(--ink)}
+  .eq-box .tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .eq-box .name{font-family:'Fraunces',serif;font-weight:300;font-size:38px;letter-spacing:-.02em;line-height:1}
+  .eq-box .name .cnt{display:block;font-family:'Noto Serif SC',serif;font-size:16px;color:var(--ink);margin-top:8px;font-weight:400}
+  .eq-box .desc{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6;font-family:'Noto Serif SC',serif}
+
+  .eq-agent{grid-column:1/span 4;background:var(--ink);color:var(--paper)}
+  .eq-agent .tag{color:rgba(244,239,230,.6)}
+  .eq-agent .desc{color:rgba(244,239,230,.7)}
+  .eq-op{grid-column:5/span 1;display:flex;justify-content:center;font-family:'Fraunces',serif;font-size:64px;font-weight:300;color:var(--rust)}
+  .eq-harness{grid-column:6/span 3;background:var(--paper-2)}
+  .eq-plus{grid-column:9/span 1;display:flex;justify-content:center;font-family:'Fraunces',serif;font-size:64px;font-weight:300;color:var(--rust)}
+  .eq-llm{grid-column:10/span 3}
+
+  /* decorative orbit lines on hero diagram */
+  .equation-scene::before{
+    content:"";position:absolute;top:-30px;left:-20px;
+    width:120px;height:120px;border:1px dashed var(--muted);border-radius:50%;
+    opacity:.4;pointer-events:none;
+  }
+  .equation-scene::after{
+    content:"FIG. 01";position:absolute;top:-40px;right:0;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--muted);
+  }
+
+  /* ============ LAYERED TREE ============ */
+  .tree-container{position:relative;padding:40px 0}
+  .tree-svg{width:100%;height:auto;display:block}
+
+  /* ============ LOOP DIAGRAM ============ */
+  .loop-wrap{
+    display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;
+  }
+  .loop-diagram{position:relative;width:100%;aspect-ratio:1/1;max-width:520px;margin:0 auto}
+  .loop-text h3{font-family:'Fraunces',serif;font-weight:300;font-size:32px;line-height:1.1;margin-bottom:24px;letter-spacing:-.02em}
+  .loop-text h3 em{color:var(--rust);font-style:italic}
+  .loop-text p{font-family:'Noto Serif SC',serif;font-weight:300;font-size:15px;line-height:1.9;margin-bottom:16px;color:var(--ink)}
+  .loop-text .callout{
+    margin-top:32px;padding:20px;border-left:3px solid var(--rust);background:var(--paper-2);
+    font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;
+  }
+  .loop-text .callout .k{color:var(--rust)}
+
+  /* ============ LAYER CARDS ============ */
+  .layers{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--ink)}
+  .layer{
+    display:grid;grid-template-columns:140px 1fr 2fr 80px;gap:32px;
+    padding:32px 0;border-bottom:1px solid var(--ink);
+    align-items:start;
+    transition:background .3s;
+  }
+  .layer:hover{background:var(--paper-2)}
+  .layer-depth{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;color:var(--muted)}
+  .layer-depth .d{display:block;font-family:'Fraunces',serif;font-size:56px;font-weight:300;color:var(--ink);line-height:1;margin-top:4px}
+  .layer-name{font-family:'Fraunces',serif;font-weight:400;font-size:24px;line-height:1.2;letter-spacing:-.01em}
+  .layer-name .cn{display:block;font-family:'Noto Serif SC',serif;font-size:14px;color:var(--muted);margin-top:4px;font-weight:400}
+  .layer-formula{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;color:var(--ink)}
+  .layer-formula .hl{color:var(--rust);font-weight:600}
+  .layer-formula .new{background:var(--ochre);color:var(--paper);padding:1px 6px}
+  .layer-formula .desc{display:block;margin-top:10px;font-family:'Noto Serif SC',serif;font-size:13px;color:var(--muted);line-height:1.7}
+  .layer-icon{display:flex;justify-content:flex-end;align-items:flex-start}
+  .layer-icon svg{width:60px;height:60px}
+
+  /* ============ ATOMS ============ */
+  .atoms{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--ink);
+    border:1px solid var(--ink);
+  }
+  .atom{
+    background:var(--paper);padding:40px 24px;position:relative;overflow:hidden;
+    transition:background .3s;
+  }
+  .atom:hover{background:var(--paper-2)}
+  .atom .sym{font-family:'Fraunces',serif;font-size:80px;font-weight:300;color:var(--ink);line-height:1;margin-bottom:16px}
+  .atom .t{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--rust);margin-bottom:8px}
+  .atom .n{font-family:'Fraunces',serif;font-size:18px;font-weight:400;margin-bottom:4px}
+  .atom .d{font-family:'Noto Serif SC',serif;font-size:12px;color:var(--muted);line-height:1.6;font-weight:300}
+  .atom::after{
+    content:"";position:absolute;top:12px;right:12px;
+    width:8px;height:8px;border:1px solid var(--muted);border-radius:50%;
+  }
+
+  /* ============ EXTRAPOLATION ============ */
+  .extrap{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--ink)}
+  .ext-card{padding:36px 28px;border-right:1px solid var(--ink);position:relative}
+  .ext-card:last-child{border-right:none}
+  .ext-card .num{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--muted)}
+  .ext-card .t{font-family:'Fraunces',serif;font-weight:300;font-size:36px;margin:8px 0 20px;letter-spacing:-.02em}
+  .ext-card .t em{color:var(--rust);font-style:italic}
+  .ext-card .f{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;padding:16px;background:var(--paper-2);margin-bottom:16px}
+  .ext-card .f .op{color:var(--rust)}
+  .ext-card .d{font-family:'Noto Serif SC',serif;font-size:13px;line-height:1.8;color:var(--ink);font-weight:300}
+
+  /* ============ CLOSING ============ */
+  .closing{
+    padding:120px 48px;text-align:center;border-bottom:1px solid var(--ink);
+    position:relative;background:var(--ink);color:var(--paper);
+  }
+  .closing-mark{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.3em;color:var(--ochre);margin-bottom:32px;
+  }
+  .closing h2{
+    font-family:'Fraunces',serif;font-weight:300;font-size:clamp(40px,6vw,88px);
+    line-height:1.05;letter-spacing:-.03em;max-width:900px;margin:0 auto;
+  }
+  .closing h2 em{font-style:italic;color:var(--ochre)}
+  .closing p{font-family:'Noto Serif SC',serif;font-weight:300;max-width:560px;margin:32px auto 0;line-height:1.9;color:rgba(244,239,230,.7);font-size:14px}
+
+  footer{padding:24px 48px;display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+
+  /* ============ ANIMATIONS ============ */
+  @keyframes drift{
+    0%,100%{transform:translate(0,0)}
+    50%{transform:translate(3px,-4px)}
+  }
+  @keyframes dash{to{stroke-dashoffset:-40}}
+  @keyframes spin-slow{to{transform:rotate(360deg)}}
+  @keyframes reveal{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  .reveal{opacity:0;animation:reveal .9s cubic-bezier(.2,.8,.2,1) forwards}
+  .reveal:nth-child(2){animation-delay:.1s}
+  .reveal:nth-child(3){animation-delay:.2s}
+  .reveal:nth-child(4){animation-delay:.3s}
+
+  .loop-arrow{stroke-dasharray:6 4;animation:dash 2s linear infinite}
+  .orbit{animation:spin-slow 60s linear infinite;transform-origin:center}
+
+  /* ============ RESPONSIVE ============ */
+  @media(max-width:900px){
+    header,section,.hero,.closing,footer{padding-left:24px;padding-right:24px}
+    .hero{grid-template-columns:1fr;padding:48px 24px 80px}
+    .hero-sub{margin-left:0;max-width:none}
+    .sec-head{grid-template-columns:1fr;gap:12px;margin-bottom:40px}
+    .sec-title{font-size:32px}
+    .equation-scene{grid-template-columns:1fr;min-height:auto}
+    .eq-agent,.eq-harness,.eq-llm,.eq-op,.eq-plus{grid-column:1}
+    .eq-op,.eq-plus{font-size:36px;padding:12px}
+    .loop-wrap{grid-template-columns:1fr;gap:32px}
+    .layer{grid-template-columns:1fr;gap:12px;padding:24px 0}
+    .layer-icon{display:none}
+    .atoms{grid-template-columns:repeat(2,1fr)}
+    .extrap{grid-template-columns:1fr}
+    .ext-card{border-right:none;border-bottom:1px solid var(--ink)}
+    .ext-card:last-child{border-bottom:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="left">Anthropic Field Notes · Vol. Ⅶ</div>
+  <div class="mark" title="mark"></div>
+  <div class="right">Recorded · 2026.04.17 / San Jose, CA</div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" style="border-top:none">
+  <div class="reveal">
+    <div class="hero-label">A study in decomposition · 增量描述法</div>
+    <h1>
+      Agent<span class="eq">=</span><span class="italic">Harness</span>
+      <span class="eq">+</span>LLM.
+    </h1>
+  </div>
+  <div class="hero-sub reveal">
+    <span class="big">解剖一句口号,直到它变成一棵可以随处展开的树。</span>
+    本文档以"已知A + 已知B + 差异点"为刀,逐层递归地拆解"何为 Agent",至矩阵与 softmax 为止。
+  </div>
+  <div class="hero-meta">
+    <span>— 07 Layers</span>
+    <span>从口号到原语</span>
+    <span>Fig. 01 → Fig. 09</span>
+  </div>
+</section>
+
+<!-- ============ SECTION 01 · CORE EQUATION ============ -->
+<section>
+  <div class="sec-head">
+    <div class="sec-num">§ 01</div>
+    <div class="sec-title">核心等式 / <span class="em">The Core Equation</span></div>
+    <div class="sec-meta">Layer 0 — Root</div>
+  </div>
+
+  <div class="equation-scene">
+    <div class="eq-box eq-agent">
+      <div class="tag">Layer 0</div>
+      <div class="name">Agent<span class="cnt">智能体</span></div>
+      <div class="desc">能感知、决策、行动并循环逼近目标的系统。</div>
+    </div>
+    <div class="eq-op">=</div>
+    <div class="eq-box eq-harness">
+      <div class="tag">Body / 身</div>
+      <div class="name">Harness<span class="cnt">马具</span></div>
+      <div class="desc">循环 + 工具 + 上下文。给大脑套上手脚。</div>
+    </div>
+    <div class="eq-plus">+</div>
+    <div class="eq-box eq-llm">
+      <div class="tag">Mind / 脑</div>
+      <div class="name">LLM<span class="cnt">语言模型</span></div>
+      <div class="desc">海量文本中长出的、会说话的概率分布。</div>
+    </div>
+  </div>
+
+  <p style="margin-top:48px;max-width:640px;font-family:'Noto Serif SC',serif;font-weight:300;font-size:15px;line-height:1.9;color:var(--ink);border-left:1px solid var(--ink);padding-left:20px">
+    LLM 本身只会"说话",套上 Harness 后它能"做事"。<br>一句话:<em style="color:var(--rust);font-style:italic">会说话的大脑 + 让大脑能行动的身体</em>。
+  </p>
+</section>
+
+<!-- ============ SECTION 02 · THE LOOP ============ -->
+<section>
+  <div class="sec-head">
+    <div class="sec-num">§ 02</div>
+    <div class="sec-title">行动之环 / <span class="em">The Agent Loop</span></div>
+    <div class="sec-meta">Fig. 02 — Cyclic</div>
+  </div>
+
+  <div class="loop-wrap">
+    <!-- LOOP SVG -->
+    <div class="loop-diagram">
+      <svg viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg" class="tree-svg">
+        <!-- outer decorative ring -->
+        <circle cx="260" cy="260" r="248" fill="none" stroke="#2a2a2a" stroke-width="1" opacity=".25" stroke-dasharray="2 6"/>
+        <circle cx="260" cy="260" r="215" fill="none" stroke="#2a2a2a" stroke-width="1" opacity=".4"/>
+
+        <!-- center -->
+        <g>
+          <circle cx="260" cy="260" r="62" fill="#1a1a1a"/>
+          <text x="260" y="255" text-anchor="middle" fill="#f4efe6" font-family="'Fraunces',serif" font-size="22" font-weight="300" font-style="italic">LLM</text>
+          <text x="260" y="278" text-anchor="middle" fill="#c8892e" font-family="'JetBrains Mono',monospace" font-size="9" letter-spacing="2">BRAIN</text>
+        </g>
+
+        <!-- 4 nodes around -->
+        <g font-family="'Fraunces',serif">
+          <!-- THINK (top) -->
+          <g>
+            <circle cx="260" cy="70" r="44" fill="#f4efe6" stroke="#1a1a1a" stroke-width="1.5"/>
+            <text x="260" y="68" text-anchor="middle" font-size="15" font-weight="400">Think</text>
+            <text x="260" y="85" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="11" fill="#6b6358">思考</text>
+          </g>
+          <!-- ACT (right) -->
+          <g>
+            <circle cx="450" cy="260" r="44" fill="#b5432a" stroke="#1a1a1a" stroke-width="1.5"/>
+            <text x="450" y="258" text-anchor="middle" font-size="15" font-weight="400" fill="#f4efe6">Act</text>
+            <text x="450" y="275" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="11" fill="#f4efe6">行动</text>
+          </g>
+          <!-- OBSERVE (bottom) -->
+          <g>
+            <circle cx="260" cy="450" r="44" fill="#f4efe6" stroke="#1a1a1a" stroke-width="1.5"/>
+            <text x="260" y="448" text-anchor="middle" font-size="15" font-weight="400">Observe</text>
+            <text x="260" y="465" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="11" fill="#6b6358">观察</text>
+          </g>
+          <!-- DECIDE (left) -->
+          <g>
+            <circle cx="70" cy="260" r="44" fill="#4a5d3a" stroke="#1a1a1a" stroke-width="1.5"/>
+            <text x="70" y="258" text-anchor="middle" font-size="15" font-weight="400" fill="#f4efe6">Decide</text>
+            <text x="70" y="275" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="11" fill="#f4efe6">判定</text>
+          </g>
+        </g>
+
+        <!-- arrows (curved, dashed, animated) -->
+        <g fill="none" stroke="#1a1a1a" stroke-width="1.5">
+          <path class="loop-arrow" d="M 302,85 A 220 220 0 0 1 432,220"/>
+          <path class="loop-arrow" d="M 432,302 A 220 220 0 0 1 302,432"/>
+          <path class="loop-arrow" d="M 218,432 A 220 220 0 0 1 88,302"/>
+          <path class="loop-arrow" d="M 88,220 A 220 220 0 0 1 218,85"/>
+        </g>
+
+        <!-- arrow heads -->
+        <g fill="#1a1a1a">
+          <polygon points="432,215 440,225 424,225"/>
+          <polygon points="302,432 308,416 316,430"/>
+          <polygon points="88,305 78,298 96,293"/>
+          <polygon points="218,87 210,100 202,86"/>
+        </g>
+
+        <!-- connector to center -->
+        <g stroke="#c8892e" stroke-width="1" fill="none" opacity=".6" stroke-dasharray="2 3">
+          <line x1="260" y1="114" x2="260" y2="198"/>
+          <line x1="406" y1="260" x2="322" y2="260"/>
+          <line x1="260" y1="406" x2="260" y2="322"/>
+          <line x1="114" y1="260" x2="198" y2="260"/>
+        </g>
+
+        <!-- tick marks on outer ring -->
+        <g stroke="#1a1a1a" stroke-width="1" opacity=".4">
+          <line x1="260" y1="12" x2="260" y2="22"/>
+          <line x1="508" y1="260" x2="498" y2="260"/>
+          <line x1="260" y1="508" x2="260" y2="498"/>
+          <line x1="12" y1="260" x2="22" y2="260"/>
+        </g>
+
+        <!-- corner labels -->
+        <text x="260" y="8" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#6b6358" letter-spacing="2">N</text>
+        <text x="515" y="263" text-anchor="start" font-family="'JetBrains Mono',monospace" font-size="9" fill="#6b6358" letter-spacing="2">E</text>
+        <text x="260" y="518" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#6b6358" letter-spacing="2">S</text>
+        <text x="5" y="263" text-anchor="start" font-family="'JetBrains Mono',monospace" font-size="9" fill="#6b6358" letter-spacing="2">W</text>
+      </svg>
+    </div>
+
+    <div class="loop-text">
+      <h3>循环,不是 while, 而是 <em>自我询问</em> 的 while。</h3>
+      <p>普通程序的 while 靠一个布尔表达式判断退出;Agent 的 while 把"是否该停"交给被循环者自己。每一步,LLM 读完上下文,吐出下一步想做什么——如果是调用工具,Harness 负责执行并把结果喂回;如果是"完成",循环就结束。</p>
+      <p>上下文管理器是第三个角色。它决定哪些历史被保留、哪些被摘要、哪些被丢弃——因为 token 窗口是有限的。</p>
+      <div class="callout">
+        <span class="k">while</span> not done:<br>
+        &nbsp;&nbsp;thought = LLM(context)<br>
+        &nbsp;&nbsp;<span class="k">if</span> is_tool_call(thought):<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;result = execute(thought)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;context += result<br>
+        &nbsp;&nbsp;<span class="k">else</span>:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;done = <span class="k">True</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 03 · LAYERED TREE (FLOW) ============ -->
+<section>
+  <div class="sec-head">
+    <div class="sec-num">§ 03</div>
+    <div class="sec-title">递归之树 / <span class="em">The Recursive Tree</span></div>
+    <div class="sec-meta">Fig. 03 — Flow</div>
+  </div>
+
+  <div class="tree-container">
+    <svg viewBox="0 0 1200 880" class="tree-svg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#2a2a2a" stroke-width=".3" opacity=".2"/>
+        </pattern>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#1a1a1a"/>
+        </marker>
+      </defs>
+      <rect width="1200" height="880" fill="url(#grid)"/>
+
+      <!-- L0 root -->
+      <g>
+        <rect x="540" y="30" width="120" height="60" fill="#1a1a1a"/>
+        <text x="600" y="58" text-anchor="middle" fill="#f4efe6" font-family="'Fraunces',serif" font-size="22" font-weight="300" font-style="italic">Agent</text>
+        <text x="600" y="76" text-anchor="middle" fill="#c8892e" font-family="'JetBrains Mono',monospace" font-size="9" letter-spacing="2">L0 · ROOT</text>
+      </g>
+
+      <!-- L1 : Harness + LLM -->
+      <g>
+        <rect x="280" y="170" width="180" height="70" fill="#f4efe6" stroke="#1a1a1a" stroke-width="1.5"/>
+        <text x="370" y="198" text-anchor="middle" font-family="'Fraunces',serif" font-size="20">Harness</text>
+        <text x="370" y="218" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="12" fill="#6b6358">马具 · 身</text>
+        <text x="370" y="232" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#b5432a" letter-spacing="2">L1</text>
+      </g>
+      <g>
+        <rect x="740" y="170" width="180" height="70" fill="#f4efe6" stroke="#1a1a1a" stroke-width="1.5"/>
+        <text x="830" y="198" text-anchor="middle" font-family="'Fraunces',serif" font-size="20">LLM</text>
+        <text x="830" y="218" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="12" fill="#6b6358">语言模型 · 心</text>
+        <text x="830" y="232" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#b5432a" letter-spacing="2">L1</text>
+      </g>
+
+      <!-- edges L0->L1 -->
+      <g fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arr)">
+        <path d="M 580 90 Q 560 130 460 170"/>
+        <path d="M 620 90 Q 640 130 740 170"/>
+      </g>
+
+      <!-- L2 under Harness (3) -->
+      <g>
+        <rect x="80" y="320" width="160" height="60" fill="#ebe4d5" stroke="#1a1a1a" stroke-width="1"/>
+        <text x="160" y="346" text-anchor="middle" font-family="'Fraunces',serif" font-size="15">Loop Controller</text>
+        <text x="160" y="363" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="11" fill="#6b6358">循环控制器</text>
+      </g>
+      <g>
+        <rect x="290" y="320" width="160" height="60" fill="#ebe4d5" stroke="#1a1a1a" stroke-width="1"/>
+        <text x="370" y="346" text-anchor="middle" font-family="'Fraunces',serif" font-size="15">Tool Interface</text>
+        <text x="370" y="363" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="11" fill="#6b6358">工具接口</text>
+      </g>
+      <g>
+        <rect x="500" y="320" width="160" height="60" fill="#ebe4d5" stroke="#1a1a1a" stroke-width="1"/>
+        <text x="580" y="346" text-anchor="middle" font-family="'Fraunces',serif" font-size="15">Context Manager</text>
+        <text x="580" y="363" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="11" fill="#6b6358">上下文管理</text>
+      </g>
+
+      <!-- L2 under LLM (3) -->
+      <g>
+        <rect x="700" y="320" width="160" height="60" fill="#ebe4d5" stroke="#1a1a1a" stroke-width="1"/>
+        <text x="780" y="346" text-anchor="middle" font-family="'Fraunces',serif" font-size="15">Neural Net</text>
+        <text x="780" y="363" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="11" fill="#6b6358">神经网络</text>
+      </g>
+      <g>
+        <rect x="880" y="320" width="160" height="60" fill="#ebe4d5" stroke="#1a1a1a" stroke-width="1"/>
+        <text x="960" y="346" text-anchor="middle" font-family="'Fraunces',serif" font-size="15">Autoregression</text>
+        <text x="960" y="363" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="11" fill="#6b6358">自回归生成</text>
+      </g>
+      <g>
+        <rect x="1060" y="320" width="130" height="60" fill="#ebe4d5" stroke="#1a1a1a" stroke-width="1"/>
+        <text x="1125" y="346" text-anchor="middle" font-family="'Fraunces',serif" font-size="15">Training</text>
+        <text x="1125" y="363" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="11" fill="#6b6358">训练分布</text>
+      </g>
+
+      <!-- edges L1 -> L2 -->
+      <g fill="none" stroke="#1a1a1a" stroke-width="1" marker-end="url(#arr)">
+        <path d="M 330 240 Q 230 280 160 320"/>
+        <path d="M 370 240 L 370 320"/>
+        <path d="M 420 240 Q 500 280 580 320"/>
+        <path d="M 790 240 L 780 320"/>
+        <path d="M 830 240 L 960 320"/>
+        <path d="M 870 240 Q 1000 280 1125 320"/>
+      </g>
+
+      <!-- L3 leaves (selected) -->
+      <g font-family="'Fraunces',serif">
+        <rect x="40" y="470" width="110" height="50" fill="#f4efe6" stroke="#1a1a1a" stroke-width=".8" stroke-dasharray="3 2"/>
+        <text x="95" y="493" text-anchor="middle" font-size="12">while-loop</text>
+        <text x="95" y="508" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="10" fill="#6b6358">self-halt</text>
+
+        <rect x="170" y="470" width="110" height="50" fill="#f4efe6" stroke="#1a1a1a" stroke-width=".8" stroke-dasharray="3 2"/>
+        <text x="225" y="493" text-anchor="middle" font-size="12">Max Steps</text>
+        <text x="225" y="508" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="10" fill="#6b6358">硬兜底</text>
+
+        <rect x="300" y="470" width="110" height="50" fill="#f4efe6" stroke="#1a1a1a" stroke-width=".8" stroke-dasharray="3 2"/>
+        <text x="355" y="493" text-anchor="middle" font-size="12">JSON Parser</text>
+        <text x="355" y="508" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="10" fill="#6b6358">解析·回灌</text>
+
+        <rect x="430" y="470" width="110" height="50" fill="#f4efe6" stroke="#1a1a1a" stroke-width=".8" stroke-dasharray="3 2"/>
+        <text x="485" y="493" text-anchor="middle" font-size="12">Queue</text>
+        <text x="485" y="508" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="10" fill="#6b6358">消息队列</text>
+
+        <rect x="560" y="470" width="110" height="50" fill="#f4efe6" stroke="#1a1a1a" stroke-width=".8" stroke-dasharray="3 2"/>
+        <text x="615" y="493" text-anchor="middle" font-size="12">Summarize</text>
+        <text x="615" y="508" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="10" fill="#6b6358">摘要压缩</text>
+
+        <rect x="700" y="470" width="110" height="50" fill="#f4efe6" stroke="#b5432a" stroke-width="1.2"/>
+        <text x="755" y="493" text-anchor="middle" font-size="12" fill="#b5432a">Attention</text>
+        <text x="755" y="508" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="10" fill="#b5432a">注意力机制</text>
+
+        <rect x="830" y="470" width="110" height="50" fill="#f4efe6" stroke="#1a1a1a" stroke-width=".8" stroke-dasharray="3 2"/>
+        <text x="885" y="493" text-anchor="middle" font-size="12">FFN</text>
+        <text x="885" y="508" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="10" fill="#6b6358">前馈网络</text>
+
+        <rect x="960" y="470" width="110" height="50" fill="#f4efe6" stroke="#1a1a1a" stroke-width=".8" stroke-dasharray="3 2"/>
+        <text x="1015" y="493" text-anchor="middle" font-size="12">Sampling</text>
+        <text x="1015" y="508" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="10" fill="#6b6358">采样</text>
+
+        <rect x="1080" y="470" width="100" height="50" fill="#f4efe6" stroke="#1a1a1a" stroke-width=".8" stroke-dasharray="3 2"/>
+        <text x="1130" y="493" text-anchor="middle" font-size="12">RLHF</text>
+        <text x="1130" y="508" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="10" fill="#6b6358">人反馈</text>
+      </g>
+
+      <g fill="none" stroke="#6b6358" stroke-width=".8" stroke-dasharray="2 3" opacity=".7">
+        <path d="M 120 380 L 95 470"/>
+        <path d="M 200 380 L 225 470"/>
+        <path d="M 370 380 L 355 470"/>
+        <path d="M 560 380 L 485 470"/>
+        <path d="M 600 380 L 615 470"/>
+        <path d="M 770 380 L 755 470"/>
+        <path d="M 790 380 L 885 470"/>
+        <path d="M 960 380 L 1015 470"/>
+        <path d="M 1125 380 L 1130 470"/>
+      </g>
+
+      <!-- atoms band -->
+      <g>
+        <text x="600" y="600" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" letter-spacing="4" fill="#6b6358">— IRREDUCIBLE PRIMITIVES · 底层原语 —</text>
+      </g>
+      <g font-family="'JetBrains Mono',monospace">
+        <g>
+          <line x1="220" y1="680" x2="220" y2="650" stroke="#6b6358" stroke-width=".6"/>
+          <text x="220" y="700" text-anchor="middle" font-size="13" fill="#1a1a1a">matmul</text>
+          <text x="220" y="716" text-anchor="middle" font-size="10" fill="#6b6358">矩阵乘法</text>
+        </g>
+        <g>
+          <line x1="420" y1="680" x2="420" y2="650" stroke="#6b6358" stroke-width=".6"/>
+          <text x="420" y="700" text-anchor="middle" font-size="13" fill="#1a1a1a">softmax</text>
+          <text x="420" y="716" text-anchor="middle" font-size="10" fill="#6b6358">归一化</text>
+        </g>
+        <g>
+          <line x1="620" y1="680" x2="620" y2="650" stroke="#6b6358" stroke-width=".6"/>
+          <text x="620" y="700" text-anchor="middle" font-size="13" fill="#1a1a1a">add</text>
+          <text x="620" y="716" text-anchor="middle" font-size="10" fill="#6b6358">加法</text>
+        </g>
+        <g>
+          <line x1="820" y1="680" x2="820" y2="650" stroke="#6b6358" stroke-width=".6"/>
+          <text x="820" y="700" text-anchor="middle" font-size="13" fill="#1a1a1a">GELU</text>
+          <text x="820" y="716" text-anchor="middle" font-size="10" fill="#6b6358">非线性</text>
+        </g>
+        <g>
+          <line x1="980" y1="680" x2="980" y2="650" stroke="#6b6358" stroke-width=".6"/>
+          <text x="980" y="700" text-anchor="middle" font-size="13" fill="#1a1a1a">dot</text>
+          <text x="980" y="716" text-anchor="middle" font-size="10" fill="#6b6358">点积</text>
+        </g>
+      </g>
+
+      <line x1="40" y1="650" x2="1160" y2="650" stroke="#1a1a1a" stroke-width=".5" opacity=".5"/>
+
+      <!-- bottom spacer text -->
+      <text x="600" y="820" text-anchor="middle" font-family="'Fraunces',serif" font-style="italic" font-size="14" fill="#6b6358">"原理永不过时,新东西只是老积木的新搭法。"</text>
+      <text x="600" y="844" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" letter-spacing="3" fill="#6b6358">— INCREMENTAL DESCRIPTION METHOD —</text>
+
+      <!-- layer labels on left -->
+      <g font-family="'JetBrains Mono',monospace" font-size="9" fill="#b5432a" letter-spacing="2">
+        <text x="10" y="65">L0</text>
+        <text x="10" y="210">L1</text>
+        <text x="10" y="355">L2</text>
+        <text x="10" y="500">L3</text>
+        <text x="10" y="705">L∞</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ============ SECTION 04 · LAYERED READ ============ -->
+<section>
+  <div class="sec-head">
+    <div class="sec-num">§ 04</div>
+    <div class="sec-title">逐层展开 / <span class="em">Layer by Layer</span></div>
+    <div class="sec-meta">Fig. 04 — Index</div>
+  </div>
+
+  <div class="layers">
+
+    <div class="layer">
+      <div class="layer-depth">Depth<span class="d">01</span></div>
+      <div class="layer-name">Harness <span class="cn">马具</span></div>
+      <div class="layer-formula">
+        <span class="hl">Harness</span> = 循环控制器 <span class="new">+ 工具接口</span> + 上下文管理器
+        <span class="desc">差异点:和普通 while 不同,这里的"退出条件"不是布尔值,而是由被循环者(LLM)自己判断任务是否完成。</span>
+      </div>
+      <div class="layer-icon">
+        <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="#1a1a1a" stroke-width="1.2"/><circle cx="30" cy="30" r="10" fill="#b5432a"/><path d="M 30 4 L 30 12 M 56 30 L 48 30 M 30 56 L 30 48 M 4 30 L 12 30" stroke="#1a1a1a" stroke-width="1"/></svg>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-depth">Depth<span class="d">02</span></div>
+      <div class="layer-name">LLM <span class="cn">语言模型</span></div>
+      <div class="layer-formula">
+        <span class="hl">LLM</span> = 神经网络 + 自回归生成 <span class="new">+ 训练出的分布</span>
+        <span class="desc">差异点:相比"一次性输出答案"的分类网络,LLM 是串行吐字的;相比规则系统,它的行为来自训练出的概率分布,而非手写规则。</span>
+      </div>
+      <div class="layer-icon">
+        <svg viewBox="0 0 60 60"><rect x="8" y="8" width="44" height="44" fill="none" stroke="#1a1a1a" stroke-width="1.2"/><circle cx="20" cy="20" r="2.5" fill="#1a1a1a"/><circle cx="40" cy="20" r="2.5" fill="#1a1a1a"/><circle cx="30" cy="30" r="2.5" fill="#b5432a"/><circle cx="20" cy="40" r="2.5" fill="#1a1a1a"/><circle cx="40" cy="40" r="2.5" fill="#1a1a1a"/><line x1="20" y1="20" x2="30" y2="30" stroke="#1a1a1a" stroke-width=".6"/><line x1="40" y1="20" x2="30" y2="30" stroke="#1a1a1a" stroke-width=".6"/><line x1="30" y1="30" x2="20" y2="40" stroke="#1a1a1a" stroke-width=".6"/><line x1="30" y1="30" x2="40" y2="40" stroke="#1a1a1a" stroke-width=".6"/></svg>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-depth">Depth<span class="d">03</span></div>
+      <div class="layer-name">Loop Controller <span class="cn">循环控制器</span></div>
+      <div class="layer-formula">
+        <span class="hl">Controller</span> = while 循环 + 终止判断 <span class="new">+ 步数上限</span>
+        <span class="desc">差异点:条件本身由被循环的对象自己决定。必须配一个硬性步数上限兜底,防止无限循环。</span>
+      </div>
+      <div class="layer-icon">
+        <svg viewBox="0 0 60 60"><path d="M 30 10 A 20 20 0 1 1 10 30" fill="none" stroke="#1a1a1a" stroke-width="1.4"/><polygon points="10,30 6,22 14,22" fill="#1a1a1a"/><text x="30" y="36" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#b5432a">?</text></svg>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-depth">Depth<span class="d">04</span></div>
+      <div class="layer-name">Tool Interface <span class="cn">工具接口</span></div>
+      <div class="layer-formula">
+        <span class="hl">Tool</span> = 函数签名 + 文本解析器 <span class="new">+ 错误回灌</span>
+        <span class="desc">差异点:普通 API 调用方是代码,参数是类型化的;工具接口的调用方是自然语言文本,多出"解析→校验→错误反馈"一环。</span>
+      </div>
+      <div class="layer-icon">
+        <svg viewBox="0 0 60 60"><rect x="8" y="18" width="18" height="24" fill="none" stroke="#1a1a1a" stroke-width="1.2"/><rect x="34" y="18" width="18" height="24" fill="#1a1a1a"/><path d="M 26 30 L 34 30" stroke="#b5432a" stroke-width="1.4"/><polygon points="34,30 30,26 30,34" fill="#b5432a"/></svg>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-depth">Depth<span class="d">05</span></div>
+      <div class="layer-name">Context Manager <span class="cn">上下文管理器</span></div>
+      <div class="layer-formula">
+        <span class="hl">Context</span> = 消息队列 + 窗口裁剪 <span class="new">+ 记忆摘要</span>
+        <span class="desc">差异点:普通队列先进先出,但系统提示、最近几步、关键中间结果必须保留,因此需要摘要策略把久远对话压缩再塞回。</span>
+      </div>
+      <div class="layer-icon">
+        <svg viewBox="0 0 60 60"><rect x="8" y="14" width="44" height="6" fill="#1a1a1a"/><rect x="8" y="24" width="36" height="6" fill="#1a1a1a" opacity=".7"/><rect x="8" y="34" width="28" height="6" fill="#1a1a1a" opacity=".4"/><rect x="8" y="44" width="18" height="6" fill="#b5432a"/></svg>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-depth">Depth<span class="d">06</span></div>
+      <div class="layer-name">Autoregression <span class="cn">自回归生成</span></div>
+      <div class="layer-formula">
+        <span class="hl">Autoreg</span> = 概率采样 + token 拼接 <span class="new">+ 每步重算</span>
+        <span class="desc">差异点:每抽一个 token,整个输入序列就变了,要再跑一遍网络。这个"抽-拼-再算"循环直到 &lt;eos&gt;。</span>
+      </div>
+      <div class="layer-icon">
+        <svg viewBox="0 0 60 60"><circle cx="12" cy="30" r="4" fill="#1a1a1a"/><circle cx="24" cy="30" r="4" fill="#1a1a1a"/><circle cx="36" cy="30" r="4" fill="#1a1a1a"/><circle cx="48" cy="30" r="4" fill="#b5432a"/><line x1="16" y1="30" x2="20" y2="30" stroke="#1a1a1a"/><line x1="28" y1="30" x2="32" y2="30" stroke="#1a1a1a"/><line x1="40" y1="30" x2="44" y2="30" stroke="#b5432a" stroke-dasharray="1 1"/></svg>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-depth">Depth<span class="d">07</span></div>
+      <div class="layer-name">Attention <span class="cn">注意力机制</span></div>
+      <div class="layer-formula">
+        <span class="hl">Attention</span> = 点积相似度 + softmax 归一化 <span class="new">+ 加权求和 (Q/K/V)</span>
+        <span class="desc">差异点:同一个 token 通过三个不同线性变换同时扮演"提问者、被查者、信息载体"三种角色,这是 Transformer 超越 RNN 的根本原因。</span>
+      </div>
+      <div class="layer-icon">
+        <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#b5432a" stroke-width="1.2"/><text x="18" y="28" font-family="'Fraunces',serif" font-style="italic" font-size="12" fill="#1a1a1a">Q</text><text x="27" y="38" font-family="'Fraunces',serif" font-style="italic" font-size="12" fill="#1a1a1a">K</text><text x="38" y="28" font-family="'Fraunces',serif" font-style="italic" font-size="12" fill="#1a1a1a">V</text></svg>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ SECTION 05 · ATOMS ============ -->
+<section>
+  <div class="sec-head">
+    <div class="sec-num">§ 05</div>
+    <div class="sec-title">不可再分的原语 / <span class="em">Irreducible Primitives</span></div>
+    <div class="sec-meta">Fig. 05 — Atoms</div>
+  </div>
+
+  <div class="atoms">
+    <div class="atom">
+      <div class="sym">⊗</div>
+      <div class="t">Primitive · 01</div>
+      <div class="n">Matrix Multiply</div>
+      <div class="d cn">矩阵乘法——全部变换的载体。从线性层到注意力权重,都是它。</div>
+    </div>
+    <div class="atom">
+      <div class="sym">Σ</div>
+      <div class="t">Primitive · 02</div>
+      <div class="n">Softmax</div>
+      <div class="d cn">把任意实数向量变成"加起来等于 1"的概率分布。让选择变得可比。</div>
+    </div>
+    <div class="atom">
+      <div class="sym">+</div>
+      <div class="t">Primitive · 03</div>
+      <div class="n">Addition</div>
+      <div class="d cn">加法——残差连接让梯度能流过百层深网,没有它就没有今天的大模型。</div>
+    </div>
+    <div class="atom">
+      <div class="sym">∫</div>
+      <div class="t">Primitive · 04</div>
+      <div class="n">Non-linearity</div>
+      <div class="d cn">ReLU / GELU——打破线性,让网络有能力拟合任意函数。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 06 · EXTRAPOLATION ============ -->
+<section>
+  <div class="sec-head">
+    <div class="sec-num">§ 06</div>
+    <div class="sec-title">把树长出去 / <span class="em">Extend the Tree</span></div>
+    <div class="sec-meta">Fig. 06 — Leverage</div>
+  </div>
+
+  <div class="extrap">
+    <div class="ext-card">
+      <div class="num">Case · 01</div>
+      <div class="t">Multi-<em>Agent</em></div>
+      <div class="f">Multi-Agent <span class="op">=</span><br>Agent <span class="op">+</span> 通信协议<br><span class="op">+</span> 角色分工</div>
+      <div class="d">任务分解并行化,让多个 Agent 协作。只是在老树上多接了两个节点。</div>
+    </div>
+    <div class="ext-card">
+      <div class="num">Case · 02</div>
+      <div class="t"><em>RAG</em></div>
+      <div class="f">RAG <span class="op">=</span><br>LLM <span class="op">+</span> 向量检索<br><span class="op">+</span> 上下文注入</div>
+      <div class="d">让 LLM 拥有"查资料"能力。注意力的外延 —— 把外部文档拉进窗口。</div>
+    </div>
+    <div class="ext-card">
+      <div class="num">Case · 03</div>
+      <div class="t"><em>MCP</em></div>
+      <div class="f">MCP <span class="op">=</span><br>工具接口 <span class="op">+</span> 标准协议<br><span class="op">+</span> 跨进程通信</div>
+      <div class="d">把"工具接口"变成跨进程标准,让任何程序都能成为 Agent 的手脚。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLOSING ============ -->
+<div class="closing">
+  <div class="closing-mark">— CODA · 余韵 —</div>
+  <h2>工具会过时,<br><em>原理永不过时</em>。</h2>
+  <p>当你用增量描述法把一个概念拆到不能再拆,它就不再是一个黑箱口号,而是一棵你可以从任意节点展开、任意节点嫁接的活树。新技术涌现时,你不会慌——因为它们多半只是老积木的新搭法。</p>
+</div>
+
+<footer>
+  <span>© Field Notes · Learning Acceleration Series</span>
+  <span>∎ END OF DOC</span>
+</footer>
+
+</body>
+</html>
