@@ -10,15 +10,13 @@
           {
             "id": "5b40b9815d6d67f1",
             "type": "leaf",
+            "pinned": true,
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "README.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "README"
+              "type": "graph",
+              "state": {},
+              "pinned": true,
+              "icon": "lucide-git-fork",
+              "title": "关系图谱"
             }
           }
         ]
@@ -94,7 +92,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "README.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +101,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "README 的反向链接列表"
+              "title": "反向链接"
             }
           },
           {
@@ -113,12 +110,11 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "README.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "README 的出链列表"
+              "title": "出链"
             }
           },
           {
@@ -156,13 +152,12 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "README 的大纲"
+              "title": "大纲"
             }
           }
         ]
@@ -185,6 +180,8 @@
   },
   "active": "5b40b9815d6d67f1",
   "lastOpenFiles": [
+    "wiki/index.md",
+    "README.md",
     "wiki/api/yhis-standard-api-overview.md.tmp.55944.1776955018679",
     "wiki/api/yhis-medical-insurance-integration.md",
     "wiki/api/yhis-medical-insurance-integration.md.tmp.55944.1776954940391",
@@ -215,11 +212,9 @@
     "wiki/medical-insurance/ca-signature.md.tmp.55944.1776954353522",
     "wiki/medical-insurance/communication.md",
     "wiki/medical-insurance/communication.md.tmp.55944.1776954320610",
-    "wiki/medical-insurance/inpatient-flow.md",
     "wiki/medical-insurance/inpatient-flow.md.tmp.55944.1776954281851",
     "wiki/medical-insurance/outpatient-flow.md.tmp.55944.1776954218945",
     "wiki/medical-insurance/architecture.md.tmp.55944.1776954044633",
-    "raw/医保开发/医保开发文档/元HIS接口对外开发手册.docx",
-    "raw/医保开发/医保开发文档/三层架构流程图.html"
+    "raw/医保开发/医保开发文档/元HIS接口对外开发手册.docx"
   ]
 }
