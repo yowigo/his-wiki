@@ -1,0 +1,205 @@
+{
+  "main": {
+    "id": "4bf4056c4c503e28",
+    "type": "split",
+    "children": [
+      {
+        "id": "25fdb1df18d405c9",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "5b40b9815d6d67f1",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "README.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "README"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "3cc399df53e35115",
+    "type": "split",
+    "children": [
+      {
+        "id": "c0070e6a31f14798",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1f7f04d3181aa8a4",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "d4d2b6469917fe34",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "ad67bb33de28eece",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "0fab69adcce7ea64",
+    "type": "split",
+    "children": [
+      {
+        "id": "59dee3414596f4ea",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8370a908c23fc62d",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "README.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "README 的反向链接列表"
+            }
+          },
+          {
+            "id": "7c39abe6631f2d2d",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "README.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "README 的出链列表"
+            }
+          },
+          {
+            "id": "61b57f8cfcd36dc5",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "b0d5d3ae25048811",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "f386a89501551301",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "README.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "README 的大纲"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": false
+    }
+  },
+  "active": "5b40b9815d6d67f1",
+  "lastOpenFiles": [
+    "raw/医保开发/医保开发文档/元HIS接口对外开发手册.docx",
+    "raw/医保开发/医保开发文档/三层架构流程图.html",
+    "raw/医保开发/医保开发文档/zlchs.Webhis.Test.Insure-学习笔记.md",
+    "raw/医保开发/医保开发文档/HIS-5.0医保总控-模拟医保中心-代码走查.md",
+    "raw/医保开发/医保开发文档/HIS-5.0医保总控-北京医保中心-代码走查.md",
+    "raw/医保开发/医保开发文档",
+    "raw/skills技能/gstack技能手册.md",
+    "raw/skills技能",
+    "raw/医保开发/医保开发/元HIS接口对外开发手册.docx",
+    "raw/医保开发/医保开发/三层架构流程图.html",
+    "raw/医保开发/医保开发/zlchs.Webhis.Test.Insure-学习笔记.md",
+    "raw/医保开发/医保开发/HIS-5.0医保总控-模拟医保中心-代码走查.md",
+    "raw/医保开发/医保开发/HIS-5.0医保总控-北京医保中心-代码走查.md",
+    "raw/医保开发/医保开发",
+    "raw/医保开发/五期医保概况.txtZone.Identifier",
+    "his-wiki结构检查报告.md"
+  ]
+}
