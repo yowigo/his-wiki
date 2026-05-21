@@ -1,0 +1,1482 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Keiskei">
+  <title>上海药事平台医院接口规范药品第二版1.3 - 第一、二章业务概览</title>
+  <style>
+    :root {
+      --ink: #17202a;
+      --muted: #687382;
+      --line: #d8dee8;
+      --paper: #f7f8fb;
+      --panel: #ffffff;
+      --platform: #1f6f78;
+      --hospital: #7a4e8a;
+      --supplier: #9b5b1f;
+      --danger: #b42318;
+      --warn: #a15c00;
+      --ok: #166534;
+      --soft-platform: #e8f4f5;
+      --soft-hospital: #f3eef7;
+      --soft-supplier: #fff2e2;
+      --soft-danger: #fff0ed;
+      --shadow: 0 8px 24px rgba(18, 35, 58, 0.08);
+      --radius: 8px;
+      --page-width: 80%;
+      --nav-column: 15%;
+      --content-gap: 1.25%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+      line-height: 1.65;
+    }
+
+    a {
+      color: var(--platform);
+      text-decoration: none;
+    }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero {
+      width: var(--page-width);
+      margin: 0 auto;
+      padding: 34px 0 24px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 46px);
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .summary {
+      margin: 14px 0 0;
+      max-width: 72%;
+      color: #364150;
+      font-size: 16px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #364150;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: var(--nav-column) minmax(0, 1fr);
+      gap: var(--content-gap);
+      width: var(--page-width);
+      margin: 0 auto;
+      padding: 22px 0 54px;
+    }
+
+    nav {
+      position: sticky;
+      top: 16px;
+      align-self: start;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    nav strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 0;
+      color: #3d4755;
+      font-size: 14px;
+      border-top: 1px solid #edf0f5;
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    section {
+      margin-bottom: 22px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    h4 {
+      margin: 0 0 6px;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 10px;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 0;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    .note {
+      margin: 12px 0 0;
+      padding: 12px 14px;
+      border-left: 4px solid var(--platform);
+      background: var(--soft-platform);
+      color: #243d43;
+    }
+
+    .access-focus {
+      margin-top: 18px;
+      padding: 1.1% 1.2%;
+      border: 1px solid #b8dadd;
+      border-left: 4px solid var(--platform);
+      border-radius: var(--radius);
+      background: #f2fafb;
+    }
+
+    .access-focus h2 {
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .access-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1%;
+    }
+
+    .access-option {
+      padding: 2.2%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .access-option strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--platform);
+    }
+
+    .warning {
+      border-left-color: var(--danger);
+      background: var(--soft-danger);
+      color: #4b1d18;
+    }
+
+    .his-focus {
+      margin: 12px 0 14px;
+      padding: 12px 14px;
+      border: 1px solid #f1b7ad;
+      border-left: 4px solid var(--danger);
+      border-radius: var(--radius);
+      background: var(--soft-danger);
+      font-weight: 700;
+    }
+
+    .his-focus p {
+      margin-bottom: 8px;
+    }
+
+    .his-focus ul {
+      color: var(--danger);
+      margin-top: 6px;
+    }
+    .his-focus span{
+      display: block;
+      margin-bottom: 8px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      min-width: 0;
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .card.platform {
+      border-color: #b8dadd;
+      background: var(--soft-platform);
+    }
+
+    .card.hospital {
+      border-color: #d9c8e1;
+      background: var(--soft-hospital);
+    }
+
+    .card.supplier {
+      border-color: #e8c99d;
+      background: var(--soft-supplier);
+    }
+
+    .card.rule {
+      border-color: #f1b7ad;
+      background: #fff8f6;
+    }
+
+    .role-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .role-mark {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .role-mark.hospital {
+      background: var(--hospital);
+    }
+
+    .role-mark.platform {
+      background: var(--platform);
+    }
+
+    .role-mark.supplier {
+      background: var(--supplier);
+    }
+
+    .relationship {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 7% minmax(0, 1fr) 7% minmax(0, 1fr);
+      gap: 10px;
+      align-items: stretch;
+      margin-top: 14px;
+    }
+
+    .arrow-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 132px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .arrow {
+      width: 100%;
+      height: 2px;
+      margin: 7px 0;
+      background: linear-gradient(90deg, transparent 0, var(--line) 15%, var(--platform) 50%, var(--line) 85%, transparent 100%);
+      position: relative;
+    }
+
+    .arrow::after {
+      content: "";
+      position: absolute;
+      right: 4px;
+      top: -5px;
+      width: 10px;
+      height: 10px;
+      border-top: 2px solid var(--platform);
+      border-right: 2px solid var(--platform);
+      transform: rotate(45deg);
+    }
+
+    .physical {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px dashed #c7a374;
+      border-radius: var(--radius);
+      background: #fffaf2;
+      color: #4c3420;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .flow {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .process-map {
+      margin: 12px 0 18px;
+      padding: 1.2%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfe;
+    }
+
+    .process-legend {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8%;
+      margin-bottom: 1%;
+    }
+
+    .process-legend div {
+      padding: 0.65% 1%;
+      border-radius: var(--radius);
+      color: #fff;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .process-chain {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.8%;
+    }
+
+    .process-chain .process-node {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.65rem;
+      min-height: 0;
+      padding: 4%;
+      align-content: start;
+    }
+
+    .process-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      inline-size: 2.4rem;
+      block-size: 2.4rem;
+      border-radius: 999px;
+      background: var(--ink);
+      color: #fff;
+      font-weight: 700;
+      line-height: 1;
+      flex: none;
+    }
+
+    .process-chain .process-number {
+      inline-size: 2rem;
+      block-size: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .process-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.8%;
+      margin-bottom: 0.2rem;
+    }
+
+    .process-meta strong {
+      margin-bottom: 0;
+      line-height: 1.35;
+    }
+
+    .process-chain p {
+      margin-bottom: 0;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .role-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.6rem;
+      padding: 0 0.55rem;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .role-pill.hospital {
+      background: var(--hospital);
+    }
+
+    .role-pill.platform {
+      background: var(--platform);
+    }
+
+    .role-pill.supplier {
+      background: var(--supplier);
+    }
+
+    .process-down {
+      display: none;
+      text-align: center;
+      color: var(--platform);
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1.25;
+      margin: 0.25% 0;
+    }
+
+    .process-head,
+    .process-row {
+      display: grid;
+      grid-template-columns: 30% 3% 34% 3% 30%;
+      gap: 0.6%;
+      align-items: stretch;
+    }
+
+    .process-head {
+      margin-bottom: 8px;
+    }
+
+    .process-head div {
+      padding: 8px 10px;
+      border-radius: var(--radius);
+      color: #fff;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .process-row {
+      margin-top: 8px;
+    }
+
+    .process-node {
+      min-height: 68px;
+      padding: 3%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .process-node strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .process-node.hospital {
+      border-color: #d9c8e1;
+      background: var(--soft-hospital);
+    }
+
+    .process-node.platform {
+      border-color: #b8dadd;
+      background: var(--soft-platform);
+    }
+
+    .process-node.supplier {
+      border-color: #e8c99d;
+      background: var(--soft-supplier);
+    }
+
+    .process-node.alert {
+      border-color: #efc2ba;
+      background: #fff9f7;
+    }
+
+    .process-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--platform);
+      font-weight: 700;
+      font-size: 20px;
+    }
+
+    .process-note {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px dashed #c7a374;
+      border-radius: var(--radius);
+      background: #fffaf2;
+      color: #4c3420;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .flow-row {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+    }
+
+    .step-num {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .step-body {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .step-body strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .rules {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .rule-item {
+      padding: 12px 14px;
+      border: 1px solid #efc2ba;
+      border-radius: var(--radius);
+      background: #fff9f7;
+    }
+
+    .rule-item strong {
+      color: var(--danger);
+    }
+
+    .matrix {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .matrix th,
+    .matrix td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    .matrix th {
+      background: #edf4f4;
+      color: #263b3e;
+      font-weight: 700;
+    }
+
+    .matrix tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .matrix td:last-child,
+    .matrix th:last-child {
+      border-right: 0;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #344054;
+      font-size: 13px;
+    }
+
+    .swimlane {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .lane {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .lane-head {
+      padding: 10px 12px;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .lane-head.hospital {
+      background: var(--hospital);
+    }
+
+    .lane-head.platform {
+      background: var(--platform);
+    }
+
+    .lane-head.supplier {
+      background: var(--supplier);
+    }
+
+    .lane ul {
+      margin: 0;
+      padding: 12px 16px 14px 28px;
+    }
+
+    footer {
+      width: var(--page-width);
+      margin: -28px auto 32px;
+      padding: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      nav {
+        position: static;
+      }
+
+      .relationship {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow-box {
+        min-height: 54px;
+      }
+
+      .arrow {
+        width: 2px;
+        height: 34px;
+        background: var(--platform);
+      }
+
+      .arrow::after {
+        right: -4px;
+        top: 24px;
+        transform: rotate(135deg);
+      }
+
+      .grid-3,
+      .grid-2,
+      .access-options,
+      .process-legend,
+      .rules,
+      .swimlane {
+        grid-template-columns: 1fr;
+      }
+
+      .process-head {
+        display: none;
+      }
+
+      .process-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .process-chain {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .process-arrow {
+        min-height: 22px;
+        transform: rotate(90deg);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .hero,
+      .layout {
+        width: 100%;
+        padding-left: 4%;
+        padding-right: 4%;
+      }
+
+      section {
+        padding: 16px;
+      }
+
+      .process-chain {
+        grid-template-columns: 1fr;
+      }
+
+      .matrix {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+
+    @media print {
+      nav {
+        display: none;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      section {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <p class="eyebrow">his-wiki raw / 外部接口开发 / 上海药事平台</p>
+      <h1>上海药事平台医院接口规范药品第二版1.3<br>第一、二章业务概览</h1>
+      <p class="summary">
+        本页基于《医院接口规范药品第二版1.3》第一、二章整理，目标是快速看清医院 HIS、市药事平台、药企供货方之间的业务关系、关键术语、流程红线与系统对接方式。字段、接口报文和代码字典仍以原规范第三、四章为准。
+      </p>
+      <div class="access-focus" aria-label="医院与市药事系统对接方式重点">
+        <h2>先看对接方式：同一套业务有两条入口，重心不同</h2>
+        <div class="access-options">
+          <div class="access-option">
+            <strong>一、IE 访问市药事系统中心 WEB 应用</strong>
+            重心在平台。医院业务人员通过医院内网终端直接操作市药事系统页面，完成药品基础信息查询下载、配送企业查询、价格查询、配送点申报、供货药企库存查询、询价报价等需要人机交互的功能。
+          </div>
+          <div class="access-option">
+            <strong>二、医院实现接口文档</strong>
+            重心在医院。医院 HIS / 药库系统按接口规范改造，通过医保前置机和医保网调用消息传输服务，把订单、配送、发票、验收、支付、库存、退货等业务数据自动传入或取回市药事系统。
+          </div>
+        </div>
+      </div>
+      <div class="meta-row">
+        <span class="chip">资料范围：第1章、第2章</span>
+        <span class="chip">文件著作名：Keiskei</span>
+        <span class="chip">整理日期：2026-05-11</span>
+        <span class="chip">原始资料层概览版</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav aria-label="页面目录">
+      <strong>阅读导航</strong>
+      <a href="#relation">三方关系</a>
+      <a href="#his-duty">HIS 侧职责速览</a>
+      <a href="#terms">业务术语</a>
+      <a href="#purchase-mode">采购模式</a>
+      <a href="#boundary">医院药库药房边界</a>
+      <a href="#main-flow">主业务链路</a>
+      <a href="#rules">业务红线</a>
+      <a href="#integration">系统对接方式</a>
+      <a href="#message-scope">消息传输业务范围</a>
+      <a href="#web-scope">中心 WEB 业务范围</a>
+    </nav>
+
+    <main>
+      <section id="relation">
+        <h2>一、三方关系：平台是数据中枢，实物从药企到医院</h2>
+        <div class="grid-3">
+          <article class="card hospital">
+            <div class="role-title">
+              <h3>医院 / HIS 系统</h3>
+              <span class="role-mark hospital">需求方</span>
+            </div>
+            <p>负责采购需求、订单填报或确认、配送点和库存数据维护、配送验收、入库记账、发票验收和支付确认。</p>
+          </article>
+          <article class="card platform">
+            <div class="role-title">
+              <h3>政府 / 市药事平台</h3>
+              <span class="role-mark platform">中枢</span>
+            </div>
+            <p>负责采购规则、订单审核与转发、配送单和发票核对、虚拟库存、对账、监管评价、字典和价格规则发布。</p>
+          </article>
+          <article class="card supplier">
+            <div class="role-title">
+              <h3>药企 / 供货方</h3>
+              <span class="role-mark supplier">执行方</span>
+            </div>
+            <p>负责接收订单、安排配送、上传配送单和条码、实物供货、上传发票或红字发票，部分场景可代医院填报订单或主动补货。</p>
+          </article>
+        </div>
+
+        <div class="relationship" aria-label="三方关系图">
+          <article class="card hospital">
+            <h3>医院 HIS / 药库系统</h3>
+            <ul>
+              <li>订单、退货单、支付确认</li>
+              <li>配送点、药品库存、账务数据</li>
+              <li>扫码或录码验收，回传结果</li>
+            </ul>
+          </article>
+          <div class="arrow-box">
+            <span>医保前置机<br>医保网</span>
+            <div class="arrow"></div>
+            <span>消息传输</span>
+          </div>
+          <article class="card platform">
+            <h3>市药事系统</h3>
+            <ul>
+              <li>规则、审核、转发</li>
+              <li>配送、发票、库存、支付留痕</li>
+              <li>虚拟库存、对账、监管评价</li>
+            </ul>
+          </article>
+          <div class="arrow-box">
+            <span>平台转发</span>
+            <div class="arrow"></div>
+            <span>供货协同</span>
+          </div>
+          <article class="card supplier">
+            <h3>药企系统</h3>
+            <ul>
+              <li>订单处理、配送安排</li>
+              <li>配送单、条码、批号</li>
+              <li>发票、红字发票、回款</li>
+            </ul>
+          </article>
+        </div>
+        <div class="physical">实物流通常是“药企直接配送到医院药库/药房”，但关键业务数据必须进入市药事平台，由平台成为规则裁判和数据事实源。</div>
+      </section>
+
+      <section id="his-duty">
+        <h2>二、HIS 侧开发职责速览</h2>
+        <div class="note">本节是医院 HIS 接口开发视角的职责地图；详细执行项仍以开发任务清单为准。</div>
+        <div class="his-focus">
+          <span>HIS 开发不是实现药企配送系统，也不是实现市药事平台审核规则，而是把医院药库业务变成平台可审核、可流转、可对账、可监管的数据闭环。</span>
+          <p>HIS 开发侧重点：</p>
+          <ul>
+            <li>维护本地药品、供应商、配送点与平台编码之间的映射。</li>
+            <li>完成订单提交、订单确认、平台订单编号和本地状态保存。</li>
+            <li>从平台取回配送单、发票和明细，支撑医院验收、入库和财务入账。</li>
+            <li>把配送验收、发票验收、支付确认、库存和账务数据按规范回传平台。</li>
+            <li>遇到超时、重复提交、状态不一致时，用状态查询接口做补偿和人工对账支撑。</li>
+          </ul>
+        </div>
+        <div class="grid-2">
+          <article class="card hospital">
+            <h3>对接底座</h3>
+            <p>把 HIS / 药库系统稳定接入市药事平台消息传输服务。</p>
+            <ul>
+              <li>实现 SOAP SendRecv 调用、医保前置机网络连通和平台账号配置。</li>
+              <li>构造 HEAD、MAIN、DETAIL 三段式 XML，处理字段大小写、必填、字典值和编码。</li>
+              <li>完成 SHA-1 签名、响应解析、错误码处理、超时、日志、重复提交和幂等控制。</li>
+            </ul>
+          </article>
+          <article class="card hospital">
+            <h3>基础数据</h3>
+            <p>先把平台后续下单和配送需要依赖的医院基础信息准备好。</p>
+            <ul>
+              <li>YY001：同步医院配送点、药库、药房、科室、配送地址等基础信息。</li>
+              <li>YY002：定时上报药品当前库存，每批不超过 500 条。</li>
+              <li>维护 HIS 药品、供应商、配送点、库存账务数据与平台字段之间的映射。</li>
+            </ul>
+          </article>
+          <article class="card hospital">
+            <h3>采购主链</h3>
+            <p>把医院采购单变成平台认可的有效订单。</p>
+            <ul>
+              <li>YY009：提交订单填报；一份订单只对应一家药企和一个配送地址。</li>
+              <li>YY010：用平台返回的订单编号做确认，确认后订单才生效。</li>
+              <li>YY022：医院有仓位管理要求时，用带仓位信息的订单填报承接 YY009 场景。</li>
+            </ul>
+          </article>
+          <article class="card hospital">
+            <h3>配送、发票、验收、支付</h3>
+            <p>药企上传业务数据后，HIS 从平台取回并完成院内闭环。</p>
+            <ul>
+              <li>YY005 / YY006：查询配送单和配送明细，支撑扫码或录码验收入库。</li>
+              <li>YY007 / YY008：查询发票单和发票明细，避免医院重复录入发票内容。</li>
+              <li>YY018 / YY019 / YY017：配送明细验收、发票验收、支付确认和对账闭环。</li>
+            </ul>
+          </article>
+          <article class="card hospital">
+            <h3>异常补偿</h3>
+            <p>处理接口超时、重复提交、状态不一致和人工对账问题。</p>
+            <ul>
+              <li>YY020：单条单据通用查询，作为状态核查和补偿入口。</li>
+              <li>YY021：订单明细状态查询，跟踪订单执行情况。</li>
+              <li>YY023：配送单或发票明细状态查询，辅助验收、发票和对账排错。</li>
+            </ul>
+          </article>
+          <article class="card hospital">
+            <h3>按需启用业务</h3>
+            <p>根据医院管理模式和业务权限决定是否纳入本期开发。</p>
+            <ul>
+              <li>YY011 / YY012：退货单填报和确认。</li>
+              <li>YY024 / YY025：特需药品申报和查询。</li>
+              <li>YY032 / YY033 / YY034：代填企业管理、已设置代填企业查询、发票拒收。</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="terms">
+        <h2>三、第一章业务术语</h2>
+        <div class="grid-2">
+          <article class="card">
+            <h3>订单</h3>
+            <p>货品需方向供方提交的采购单据，可来自医院采购计划，也可由库存策略自动生成。订单可以是一品一单，也可以是多品一单。</p>
+            <ul>
+              <li>一份订单只能对应一家供货或配送药企。</li>
+              <li>一份订单只能对应一个供货配送地址。</li>
+              <li>涉及多家药企或多个配送地址时，必须拆成多份订单。</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>配送单</h3>
+            <p>药企根据订单安排配送、装运、装箱的货品清单。配送单必须在配送货物之前上传平台，并且必须早于发票。</p>
+            <ul>
+              <li>配送单用于医院清点验收入库，不等同于发票。</li>
+              <li>配送数量可小于或等于订单数量，不允许大于订单数量。</li>
+              <li>配送内容需有条码或唯一标识，供医院从平台获取明细。</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>发票</h3>
+            <p>药企基于供货情况向医院要求付款、医院财务记账的依据。发票必须明确关联配送数据，平台会实时核对。</p>
+            <ul>
+              <li>必须先有配送，才能编制发票。</li>
+              <li>发票不是药品验收入库时清点货品数量的依据。</li>
+              <li>量价挂钩集中采购药品必须单独开票，不能混入其他模式药品。</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>生产批号</h3>
+            <p>生产企业识别同一批产品的一组编号，用于追溯生产历史、质量状况和市场去向。</p>
+            <ul>
+              <li>配送明细要求按相同生产批号归理。</li>
+              <li>同一药品如存在不同批号，应拆成不同配送明细。</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>生产日期与有效日期</h3>
+            <p>生产日期表示商品完成生产工序的日期；有效日期表示在规定储存条件下保证质量使用的最晚日期。</p>
+            <ul>
+              <li>平台采集这些信息用于跟踪医院进货和后续使用情况。</li>
+              <li>核心目标是质量控制、追溯和必要时的控制或回收。</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>退货、换货、验收的边界</h3>
+            <p>退货只针对已验收入库货品；尚未验收入库的货品不能作为退货处理。平台不支持换货的信息化流程。</p>
+            <ul>
+              <li>换货可通过先验收入库再走退货，或线下人工处理。</li>
+              <li>验收按配送明细全收或全不收，不支持同一明细部分数量入库。</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="purchase-mode">
+        <h2>四、三种采购模式</h2>
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>模式</th>
+              <th>谁主导</th>
+              <th>业务特点</th>
+              <th>对系统的影响</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>量价挂钩集中采购</td>
+              <td>政府按全市定点医院使用情况与药企整体采购，并存在财政预先垫付关系。</td>
+              <td>平台必须掌握供货方库存、配送在途、收货入库、支付结算等完整账务数据。</td>
+              <td>平台形成虚拟库存；医院到货后扣减；发票和支付必须单独处理；药企需应对向市药事所回款流程。</td>
+            </tr>
+            <tr>
+              <td>招标入围限价供货</td>
+              <td>政府通过招标确定入围供货最高限价或供货药企，采购主体通常仍是医院。</td>
+              <td>医院按政府规则通过系统向药企下订单完成采购。</td>
+              <td>平台承担规则、限价、入围供货方和订单转发监管角色。</td>
+            </tr>
+            <tr>
+              <td>不招标 / 挂网询价</td>
+              <td>医院与药企双方通过网上询价、报价协商。</td>
+              <td>询价完成后，双方按商定价格和数量交易。</td>
+              <td>平台提供交易留痕、价格和规则查询、询报价协同入口。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="boundary">
+        <h2>五、医院药库药房业务与平台边界</h2>
+        <div class="grid-2">
+          <article class="card">
+            <h3>药库职责</h3>
+            <ul>
+              <li>维护药品基础信息、价格信息、新药申报。</li>
+              <li>采购药品，编制并发送订单。</li>
+              <li>管理库存或虚拟库存。</li>
+              <li>处理入库、出库、验收、退货、记账、盘点、报损。</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>药房职责</h3>
+            <ul>
+              <li>从药库领药，或直接接收供货配送入药房。</li>
+              <li>根据医嘱或处方配置、发放药品。</li>
+              <li>处理住院、门诊配药记账。</li>
+              <li>执行盘点、报损、未用药品退回等业务。</li>
+            </ul>
+          </article>
+        </div>
+
+        <h3 style="margin-top: 18px;">医院药库的四种运作模式</h3>
+        <div class="grid-2">
+          <article class="card">
+            <h4>1. 医院自设药库</h4>
+            <p>医院自行采购，货品先入药库，再按需配送院内各药房。规范认为这是当前多数模式。</p>
+          </article>
+          <article class="card">
+            <h4>2. 药库业务外包给配送企业</h4>
+            <p>医院不设药库，由外包方按各药房存量组织供货商补充所需。</p>
+          </article>
+          <article class="card">
+            <h4>3. 区县或集团统一虚拟药库</h4>
+            <p>医院不设药库，由区卫生局、医疗集团或医联体统一设置虚拟药库，药企直接配送到医院药房。</p>
+          </article>
+          <article class="card">
+            <h4>4. 药库药房全套外包托管</h4>
+            <p>药库和药房业务均由外包方承担，门诊、住院配药流程由托管体系支撑。</p>
+          </article>
+        </div>
+        <div class="note">
+          规范的关键口径：无论药库由谁承包或承担，逻辑上仍视为“医院药库”。与市药事系统互联互接的责任随药库承包者或承担者转移，但业务归属仍在医院体系内。
+        </div>
+        <div class="note warning">
+          平台边界：市药事系统与医院系统对接围绕药库业务，包括药品基础信息、订单、配送验收入库、发票凭证入账、库存账务。与医院非药品进销存业务暂无关。
+        </div>
+      </section>
+
+      <section id="main-flow">
+        <h2>六、主业务链路草图</h2>
+        <div class="note">序号即流向：1 → 14 顺序执行。主线红线是先订单，后配送单，再发票，最后验收、支付、对账；实物可以直达医院，但关键业务数据必须进入市药事平台。</div>
+        <div class="process-map" aria-label="医院、市药事平台、药企主业务链路图">
+          <div class="process-legend">
+            <div class="lane-head hospital">医院 HIS / 药库系统</div>
+            <div class="lane-head platform">政府 / 市药事平台</div>
+            <div class="lane-head supplier">药企 / 供货方</div>
+          </div>
+
+          <div class="process-chain">
+            <article class="process-node hospital">
+              <span class="process-number">1</span>
+              <div>
+                <div class="process-meta"><span class="role-pill hospital">医院</span><strong>采购需求与订单</strong></div>
+                <p>生成采购计划并填报订单；必要时可由药企代填，但业务含义仍是医院采购需求。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node platform">
+              <span class="process-number">2</span>
+              <div>
+                <div class="process-meta"><span class="role-pill platform">平台</span><strong>接收订单并生成编号</strong></div>
+                <p>市药事平台收到订单后生成唯一订单编号并返回。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node hospital">
+              <span class="process-number">3</span>
+              <div>
+                <div class="process-meta"><span class="role-pill hospital">医院</span><strong>二次确认订单</strong></div>
+                <p>医院或代填方使用订单编号进行确认；未确认订单不生效。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node platform">
+              <span class="process-number">4</span>
+              <div>
+                <div class="process-meta"><span class="role-pill platform">平台</span><strong>审核并转发药企</strong></div>
+                <p>平台执行自动或人工审核；审核通过后才转发给药企，未通过则退回。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node supplier">
+              <span class="process-number">5</span>
+              <div>
+                <div class="process-meta"><span class="role-pill supplier">药企</span><strong>接收有效订单</strong></div>
+                <p>药企接收经平台审核转发的有效订单，并在要求期限内安排配送。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node supplier">
+              <span class="process-number">6</span>
+              <div>
+                <div class="process-meta"><span class="role-pill supplier">药企</span><strong>上传配送单、条码、批号</strong></div>
+                <p>配送前上传配送单、配送明细、生产批号、包装条码和包装关系；配送单必须早于发票。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node platform">
+              <span class="process-number">7</span>
+              <div>
+                <div class="process-meta"><span class="role-pill platform">平台</span><strong>留痕并提供配送明细</strong></div>
+                <p>平台保存配送数据，作为医院扫码取明细、验收入库和后续监管的依据。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node supplier">
+              <span class="process-number">8</span>
+              <div>
+                <div class="process-meta"><span class="role-pill supplier">药企</span><strong>实物配送到医院</strong></div>
+                <p>药企把货品送达医院药库、药房或指定配送点；实物流不替代平台数据流。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node hospital">
+              <span class="process-number">9</span>
+              <div>
+                <div class="process-meta"><span class="role-pill hospital">医院</span><strong>扫码或录码获取明细</strong></div>
+                <p>医院到货后扫描或录入条码，从市药事平台实时获取配送货品清单。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node hospital">
+              <span class="process-number">10</span>
+              <div>
+                <div class="process-meta"><span class="role-pill hospital">医院</span><strong>验收入库并回传结果</strong></div>
+                <p>医院按配送明细逐项验收，完成入库记账，并把验收结果回传平台。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node platform">
+              <span class="process-number">11</span>
+              <div>
+                <div class="process-meta"><span class="role-pill platform">平台</span><strong>更新验收、入库、库存状态</strong></div>
+                <p>平台记录验收、入库、库存账务和监管状态，支撑评价、虚拟库存和后续对账。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node supplier">
+              <span class="process-number">12</span>
+              <div>
+                <div class="process-meta"><span class="role-pill supplier">药企</span><strong>上传发票或红字发票</strong></div>
+                <p>药企在配送单之后上传发票；退货场景按规则提交红字发票。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node platform">
+              <span class="process-number">13</span>
+              <div>
+                <div class="process-meta"><span class="role-pill platform">平台</span><strong>核对配送与发票关系</strong></div>
+                <p>平台校验发票明细与配送关系；不吻合时要求更改或说明原因。</p>
+              </div>
+            </article>
+            <div class="process-down">↓</div>
+            <article class="process-node hospital">
+              <span class="process-number">14</span>
+              <div>
+                <div class="process-meta"><span class="role-pill hospital">医院</span><strong>发票验收、支付确认、对账</strong></div>
+                <p>医院获取发票后进行财务记账、发票验收、支付确认；量价挂钩集中采购支付前先对账。</p>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="note">下方只归纳三方职责，不表达流程先后；流程先后以上面的 1 → 14 为准。</div>
+        <div class="swimlane">
+          <div class="lane">
+            <div class="lane-head hospital">医院侧动作</div>
+            <ul>
+              <li>提交或确认订单、退货单</li>
+              <li>扫码或录码获取配送明细</li>
+              <li>验收入库、发票验收、支付确认</li>
+              <li>库存量与账务数据上报</li>
+            </ul>
+          </div>
+          <div class="lane">
+            <div class="lane-head platform">平台侧动作</div>
+            <ul>
+              <li>生成订单编号并校验重复</li>
+              <li>自动或人工审核订单</li>
+              <li>核对配送单与发票关系</li>
+              <li>监管评价、对账、虚拟库存扣减</li>
+            </ul>
+          </div>
+          <div class="lane">
+            <div class="lane-head supplier">药企侧动作</div>
+            <ul>
+              <li>接收订单并安排配送</li>
+              <li>上传配送单、条码、批号</li>
+              <li>实物配送到医院</li>
+              <li>上传发票、红字发票或处理回款</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="rules">
+        <h2>七、不能省略的业务红线</h2>
+        <div class="rules">
+          <article class="rule-item">
+            <strong>先订单，后配送。</strong>
+            所有供货配送必须先有订单，平台不支持事后补订单。
+          </article>
+          <article class="rule-item">
+            <strong>订单必须二次确认才生效。</strong>
+            首次提交只生成订单编号；未确认的订单不生效，相同订单编号重复提交会被拒绝。
+          </article>
+          <article class="rule-item">
+            <strong>审核通过并安排配送后不能撤销。</strong>
+            已提交且审核通过的订单如发现错误，原则上走退货流程。
+          </article>
+          <article class="rule-item">
+            <strong>多品一单，一项不过整单退回。</strong>
+            多品一单中任一品目明细未获审核通过，整张订单退回，不提交供货方。
+          </article>
+          <article class="rule-item">
+            <strong>配送数量不能大于订单数量。</strong>
+            配送可少于或等于订单数量；如需超出，应另行编制订单。
+          </article>
+          <article class="rule-item">
+            <strong>配送单必须早于发票。</strong>
+            药企必须先传配送单，再传对应发票，发票明细需与配送内容吻合。
+          </article>
+          <article class="rule-item">
+            <strong>发票不是验收入库依据。</strong>
+            发票用于财务记账和付款，验收入库依据是配送单及其明细。
+          </article>
+          <article class="rule-item">
+            <strong>同一配送明细按批号归理。</strong>
+            一条明细中的货品批号应相同，不同批号应分列不同明细。
+          </article>
+          <article class="rule-item">
+            <strong>验收不支持部分数量。</strong>
+            同一配送中的某品规明细要么全部收下，要么全部未收下。
+          </article>
+          <article class="rule-item">
+            <strong>退货只针对已验收入库货品。</strong>
+            退货需先填报退货单，退货后由药企提交相应红字发票。
+          </article>
+          <article class="rule-item">
+            <strong>平台不支持换货信息化处理。</strong>
+            实际换货可先入库后退货，或走线下人工流程。
+          </article>
+          <article class="rule-item">
+            <strong>量价挂钩采购必须独立结算。</strong>
+            发票和支付不能与非该模式药品混在一起；平台按 30 天结算周期对账。
+          </article>
+        </div>
+      </section>
+
+      <section id="integration">
+        <h2>八、第二章：医院与市药事系统的对接方式</h2>
+        <div class="grid-2">
+          <article class="card platform">
+            <h3>联网通道</h3>
+            <p>医院通过医保前置机、医保网与市药事系统联网。根据业务内容和医院信息系统现状，规范允许两种方式并存。</p>
+          </article>
+          <article class="card hospital">
+            <h3>两类入口</h3>
+            <p>一类是医院系统调用消息传输接口；另一类是医院内网终端通过 IE 访问市药事系统中心 WEB 应用，完成必须有人机交互的功能。</p>
+          </article>
+        </div>
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>方式</th>
+              <th>适用场景</th>
+              <th>医院侧改造重点</th>
+              <th>结果</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>消息传输方式</td>
+              <td>适合医院药库信息系统支撑的业务数据交换，如订单、配送、发票、验收、支付、库存等。</td>
+              <td>按第三章规定的消息格式组织数据，调用平台消息传输服务，处理平台返回结果。</td>
+              <td>数据进入中心端，或从中心端获取业务信息，实现系统对系统集成。</td>
+            </tr>
+            <tr>
+              <td>医院内网 IE 访问中心 WEB</td>
+              <td>适合需要人在界面上查询、下载、申报、询价、报价等业务操作。</td>
+              <td>在医院内网终端通过 IE 访问指定地址，使用中心 WEB 功能。</td>
+              <td>不一定改造 HIS 接口，由业务人员直接在平台页面完成交互。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="message-scope">
+        <h2>九、消息传输方式覆盖的业务环节</h2>
+        <p>第二章列出的消息传输范围可以按业务阶段归并如下，具体报文和字段定义在第三章展开。</p>
+        <div class="grid-3">
+          <article class="card">
+            <h3>基础资料与库存</h3>
+            <div class="tag-list">
+              <span class="tag">医院配送点基础信息传报</span>
+              <span class="tag">药品当前库存量数据传报</span>
+              <span class="tag">带仓位信息订单</span>
+            </div>
+          </article>
+          <article class="card">
+            <h3>订单与退货</h3>
+            <div class="tag-list">
+              <span class="tag">订单填报</span>
+              <span class="tag">订单填报确认</span>
+              <span class="tag">退货单填报</span>
+              <span class="tag">退货单填报确认</span>
+              <span class="tag">可代填企业设置</span>
+              <span class="tag">已设置代填企业查询</span>
+            </div>
+          </article>
+          <article class="card">
+            <h3>配送与验收</h3>
+            <div class="tag-list">
+              <span class="tag">获取配送单明细数据</span>
+              <span class="tag">查询配送单数据</span>
+              <span class="tag">查询配送单明细数据</span>
+              <span class="tag">配送明细验收</span>
+            </div>
+          </article>
+          <article class="card">
+            <h3>发票与支付</h3>
+            <div class="tag-list">
+              <span class="tag">发票查询并获取</span>
+              <span class="tag">查询发票单数据</span>
+              <span class="tag">查询发票单明细数据</span>
+              <span class="tag">发票验收</span>
+              <span class="tag">支付确认</span>
+              <span class="tag">发票拒收</span>
+            </div>
+          </article>
+          <article class="card">
+            <h3>状态与通用查询</h3>
+            <div class="tag-list">
+              <span class="tag">单条单据通用查询</span>
+              <span class="tag">获取订单明细状态</span>
+              <span class="tag">单据明细状态查询</span>
+            </div>
+          </article>
+          <article class="card">
+            <h3>特殊药品与进货发票</h3>
+            <div class="tag-list">
+              <span class="tag">特需药品申报</span>
+              <span class="tag">特需药品申报查询</span>
+              <span class="tag">配送发票对应进货发票信息获取</span>
+              <span class="tag">进货发票明细获取</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="web-scope">
+        <h2>十、医院内网 IE 访问中心 WEB 的业务范围</h2>
+        <p>这类业务强调人工界面操作，不一定通过 HIS 系统接口直接集成。</p>
+        <div class="grid-2">
+          <article class="card">
+            <h3>查询与下载</h3>
+            <ul>
+              <li>药品基本信息查询、下载。</li>
+              <li>中标药品配送企业基本信息查询、下载。</li>
+              <li>药品在本市范围的最近实际销售价格查询。</li>
+              <li>供货药企库存情况查询。</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>申报与交易平台</h3>
+            <ul>
+              <li>医院配送点申报。</li>
+              <li>供销双方在开放式交易平台查询药品品规基础信息、业务规则信息、销售价格。</li>
+              <li>医院发起询价，药企提供报价，并按规则开展交易。</li>
+            </ul>
+          </article>
+        </div>
+        <div class="note">
+          实现视角：医院 HIS 插件优先覆盖消息传输方式中的高频链路；中心 WEB 更像补充入口，用于查询、下载、申报、询报价等需要人工交互的业务。
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    来源：D:\work\his-medical-group\code\Plugins.EB_SHPharmacy\project-docs\医院接口规范药品第二版1.3.md。本文为第一、二章摘要型业务概览，不替代原始规范。
+  </footer>
+</body>
+</html>

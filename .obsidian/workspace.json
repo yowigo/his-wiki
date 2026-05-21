@@ -18,8 +18,23 @@
               "icon": "lucide-git-fork",
               "title": "关系图谱"
             }
+          },
+          {
+            "id": "0820b21f23d2119c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "wiki/winforms-ui/sunnyui/index.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "index"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -39,7 +54,7 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false
+                "autoReveal": true
               },
               "icon": "lucide-folder-closed",
               "title": "文件列表"
@@ -178,43 +193,53 @@
       "bases:新建数据库": false
     }
   },
-  "active": "5b40b9815d6d67f1",
+  "active": "0820b21f23d2119c",
   "lastOpenFiles": [
+    "wiki/subsystems/patient/index.md",
+    "wiki/winforms-ui/sunnyui/index.md",
+    "wiki/winforms-ui/index.md",
     "wiki/index.md",
-    "README.md",
-    "wiki/api/yhis-standard-api-overview.md.tmp.55944.1776955018679",
-    "wiki/api/yhis-medical-insurance-integration.md",
-    "wiki/api/yhis-medical-insurance-integration.md.tmp.55944.1776954940391",
-    "wiki/api/yhis-registration-billing.md",
-    "wiki/api/yhis-base-data.md",
-    "raw/HIS接口文档1.0/2-系统对接文档/8-飞跃系统标准化对接文档（互联网医院）V1.0.md",
-    "raw/HIS接口文档1.0/2-系统对接文档/7-飞跃系统标准化对接文档（三方PACS）V1.0.md",
-    "raw/HIS接口文档1.0/2-系统对接文档/6-飞跃系统标准化对接文档（三方手麻）V1.0.md",
-    "raw/HIS接口文档1.0/2-系统对接文档/5-飞跃系统标准化对接文档（三方体检）V1.0.md",
-    "raw/HIS接口文档1.0/2-系统对接文档/4-飞跃系统标准化对接文档（药品类）V1.0.md",
-    "raw/HIS接口文档1.0/2-系统对接文档/1-飞跃系统标准化对接文档（三方公众服务类）V1.0.md",
-    "raw/HIS接口文档1.0/1-标准文档/9-标准化接口文档（第九部分：预约管理）V1.0 .md",
-    "raw/HIS接口文档1.0/1-标准文档/8-飞跃智慧系统标准化接口文档（第八部分：检查）V1.0.md",
-    "raw/HIS接口文档1.0/1-标准文档/7-飞跃智慧系统标准化接口文档（第七部分：医保集成）V1.0.md",
-    "raw/HIS接口文档1.0/1-标准文档/6-飞跃智慧系统标准化接口文档（第六部分：体检）V1.0.md",
-    "raw/HIS接口文档1.0/1-标准文档/5-飞跃智慧系统标准化接口文档（第五部分：药品、卫材、物资、设备）V1.0.md",
-    "raw/HIS接口文档1.0/1-标准文档/4-飞跃智慧系统标准化接口文档（第四部分：临床）V1.0.md",
-    "raw/HIS接口文档1.0/1-标准文档/3-飞跃智慧系统标准化接口文档（第三部分：检验）V1.0.md",
-    "raw/HIS接口文档1.0/1-标准文档/2-飞跃智慧系统标准化接口文档（第二部分：挂号、费用）V1.0.md",
-    "raw/HIS接口文档1.0/1-标准文档/1-飞跃智慧系统标准化接口文档（第一部分：基础数据）V1.0.md",
-    "wiki/api/yhis-standard-api-overview.md",
-    "wiki/api/yhis-standard-api-overview.md.tmp.55944.1776954608263",
-    "raw/HIS接口文档1.0/1-标准文档/7-医保集成.md",
-    "raw/HIS接口文档1.0/1-标准文档/2-挂号费用.md",
-    "raw/HIS接口文档1.0/1-标准文档/1-基础数据.md",
-    "wiki/medical-insurance/index.md.tmp.55944.1776954382381",
-    "wiki/medical-insurance/ca-signature.md",
-    "wiki/medical-insurance/ca-signature.md.tmp.55944.1776954353522",
-    "wiki/medical-insurance/communication.md",
-    "wiki/medical-insurance/communication.md.tmp.55944.1776954320610",
-    "wiki/medical-insurance/inpatient-flow.md.tmp.55944.1776954281851",
-    "wiki/medical-insurance/outpatient-flow.md.tmp.55944.1776954218945",
-    "wiki/medical-insurance/architecture.md.tmp.55944.1776954044633",
-    "raw/医保开发/医保开发文档/元HIS接口对外开发手册.docx"
+    "wiki/api/plugin-development.md",
+    "wiki/index.md.tmp.72612.1777368178322",
+    "wiki/index.md.tmp.72612.1777368157267",
+    "wiki/index.md.tmp.72612.1777368147609",
+    "wiki/index.md.tmp.72612.1777368143657",
+    "wiki/troubleshooting/medical-insurance/issue-20260428-ins-item-py-code-too-long.md",
+    "wiki/troubleshooting/medical-insurance/issue-20260424-inpatient-nurse-fee-upload-after-item-marking.md",
+    "wiki/troubleshooting/inpatient/issue-20250710-bed-conflict.md",
+    "wiki/troubleshooting/medical-insurance",
+    "wiki/troubleshooting/inpatient",
+    "wiki/troubleshooting/issue-20260428-ins-item-py-code-too-long.md",
+    "raw/医保开发/上海医保项目五期/中心系统与定点医疗机构接口规范（第五版-完整版）.md",
+    "raw/外部接口开发/医保开发文档/三层架构流程图.html.tmp.67284.1777338881184",
+    "raw/外部接口开发/医保开发文档/住院流程-表读写关系.html.tmp.69808.1777285755578",
+    "raw/外部接口开发/医保开发文档/住院流程-表读写关系.html.tmp.69808.1777285745341",
+    "raw/外部接口开发/医保开发文档/住院流程-表读写关系.html.tmp.69808.1777285717730",
+    "wiki/work-log/2026-04-26-summary.md",
+    "raw/外部接口开发/元his统一外部接口开发文档.md",
+    "raw/外部接口开发/上海医保项目五期/image/V1.0-接口规范/1775226052041.png",
+    "raw/外部接口开发/上海医保项目五期/image/V1.0-接口规范/1775226020935.png",
+    "raw/外部接口开发/上海医保项目五期/image/V1.0-接口规范/1775225993451.png",
+    "raw/外部接口开发/上海医保项目五期/image/V1.0-接口规范/1775225974035.png",
+    "raw/外部接口开发/上海医保项目五期/image/V1.0-接口规范/1775225951854.png",
+    "raw/外部接口开发/上海医保项目五期/image/V1.0-接口规范/1775225793954.png",
+    "raw/外部接口开发/上海医保项目五期/image/V1.0-接口规范/1775225778130.png",
+    "raw/外部接口开发/上海医保项目五期/image/V1.0-接口规范/1775225752235.png",
+    "raw/外部接口开发/上海医保项目五期/image/V1.0-接口规范/1775225744264.png",
+    "raw/外部接口开发/HIS接口文档1.0/2-系统对接文档/8-飞跃系统标准化对接文档（互联网医院）V1.0.md",
+    "raw/外部接口开发/HIS接口文档1.0/2-系统对接文档/6-飞跃系统标准化对接文档（三方手麻）V1.0.md",
+    "raw/外部接口开发/HIS接口文档1.0/2-系统对接文档/7-飞跃系统标准化对接文档（三方PACS）V1.0.md",
+    "raw/外部接口开发/HIS接口文档1.0/2-系统对接文档/5-飞跃系统标准化对接文档（三方体检）V1.0.md",
+    "raw/外部接口开发/HIS接口文档1.0/2-系统对接文档/4-飞跃系统标准化对接文档（药品类）V1.0.md",
+    "raw/外部接口开发/HIS接口文档1.0/2-系统对接文档/1-飞跃系统标准化对接文档（三方公众服务类）V1.0.md",
+    "raw/外部接口开发/HIS接口文档1.0/1-标准文档/9-标准化接口文档（第九部分：预约管理）V1.0 .md",
+    "raw/外部接口开发/HIS接口文档1.0/1-标准文档/8-飞跃智慧系统标准化接口文档（第八部分：检查）V1.0.md",
+    "raw/外部接口开发/HIS接口文档1.0/1-标准文档/7-飞跃智慧系统标准化接口文档（第七部分：医保集成）V1.0.md",
+    "raw/外部接口开发/HIS接口文档1.0/1-标准文档/7-医保集成.md",
+    "raw/外部接口开发/HIS接口文档1.0/1-标准文档/6-飞跃智慧系统标准化接口文档（第六部分：体检）V1.0.md",
+    "raw/外部接口开发/HIS接口文档1.0/1-标准文档/5-飞跃智慧系统标准化接口文档（第五部分：药品、卫材、物资、设备）V1.0.md",
+    "raw/外部接口开发/HIS接口文档1.0/1-标准文档/4-飞跃智慧系统标准化接口文档（第四部分：临床）V1.0.md",
+    "raw/外部接口开发/HIS接口文档1.0/1-标准文档/3-飞跃智慧系统标准化接口文档（第三部分：检验）V1.0.md",
+    "raw/插件&医保开发/上海医保项目五期/image/V1.0-接口规范/1775226052041.png"
   ]
 }

@@ -22,6 +22,10 @@
 - [医保数据库表结构](database-schema.md) — `insur` schema 核心表、关联关系、数据操作模式
 - [通信层详解](communication.md) — HTTP WebAPI(SHA256签名)、SOAP、本地 DLL、冲正机制
 
+### 排查案例
+
+- [住院护士站打标后自动触发费用明细上传](../troubleshooting/issue-20260424-inpatient-nurse-fee-upload-after-item-marking.md) — 住院护士站缺少参数（序号 1、2）导致 `1206` 后自动触发 `1207`，护士电脑无医保网时初始化失败
+
 ### 地区实现
 
 | 地区 | 通信协议 | 数据格式 | 备注 |

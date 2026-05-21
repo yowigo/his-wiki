@@ -9,12 +9,50 @@
 
 接口组开发新的对接插件时使用此模板。
 
+## 场景识别（动手前必读）
+
+外部接口在工程层只有**一套脚手架**（同一个 `Plugins.EB_*` 工程、同一个 `ProcessRequest` 入口），但产品侧有**两条挂载线**，jsonParams 字段、配置位置、触发方式都不同。识别错了后续全错。
+
+### 决策树
+
+```
+用户的需求里"谁来触发"是关键判断点：
+│
+├─ 触发主语 = HIS 系统（"挂号成功后...""收费时...""病人入院就...")
+│   → 统一事件型
+│   → 配置位置：系统管理 → 统一事件接口 → 事件管理
+│   → jsonParams 字段：module_code + function_code
+│   → 用户感知：看不到 UI 元素，被动触发
+│
+├─ 触发主语 = 用户（"在 X 界面加按钮""右键多个菜单项""操作员点了之后...")
+│   → 扩展菜单型
+│   → 配置位置：系统管理 → 拓展功能设置
+│   → jsonParams 字段：menu_code + func_sign
+│   → 用户感知：能看到 UI 元素，主动点击
+│
+└─ 描述里没有明确的触发主语
+    → 直接反问用户："这个功能是 HIS 业务流程自动触发，还是用户在界面上点按钮触发？"
+    → 不要猜
+```
+
+### 共用部分（两条线都一样）
+
+- 工程命名 `Plugins.EB_<Name>`，主类 `EB_<Name>` 继承 `CPAPIPluginBase`
+- 五个重写方法：`PluginName` / `Description` / `SettingControl` / `Dispose` / `ProcessRequest`
+- jsonParams 里的 `data` 字段（业务详细入参，JSON 格式）
+- SDK 三件套：`FrmTopTools.SetTopmost` / `BaseTools.ShowMsg` / `UPTools.GetModel`
+- 部署流程：version.json 打包 → 插件版本管理 → 接口源管理新增程序集
+
+### 同一个工程同时挂两条线？
+
+可以。同一个 `Plugins.EB_*` 工程允许同时被「事件管理」和「拓展功能设置」配置调用。`ProcessRequest` 内部需根据 `module_code` / `menu_code` 哪个有值来分流（见后文代码模板）。
+
 ## 参考项目
 
 - 插件Demo：`D:\work\his-medical-group\code\QWSB.Plugin.Demo\`
 - 检验互认插件：`D:\work\his-medical-group\code\sdp.cpapi\plugins.eb_testrecongnition\`
 - 医保插件：`D:\work\his-medical-group\code\sdp.cpapi\Plugins.MedicalInsurance\`
-- 规范文档：`D:\work\his-medical-group\上海药事平台 - 原本\dev-docs\元his统一外部接口开发文档.md`
+- 规范文档：[`../../raw/外部接口开发/元his统一外部接口开发文档.md`](../../raw/外部接口开发/元his统一外部接口开发文档.md)（his-wiki 内的权威整理版，含 UPTools 完整方法清单 + 截图文字描述）
 
 ## 命名规范
 
@@ -83,42 +121,39 @@ namespace Plugins.EB_MyFeature
             {
                 JObject busiParam = JObject.Parse(jsonParams);
 
-                // 模块功能配置方式 —— 从「系统管理→统一事件接口→事件管理」配置
+                // 统一事件入口字段（系统管理→统一事件接口→事件管理 配置后下发）
                 string moduleCode   = busiParam.Value<string>("module_code");
                 string functionCode = busiParam.Value<string>("function_code");
 
-                // 拓展菜单配置方式 —— 从「系统管理→拓展功能设置」配置
-                string menuCode  = busiParam.Value<string>("menu_code");
-                string funcSign  = busiParam.Value<string>("func_sign");
+                // 扩展菜单入口字段（系统管理→拓展功能设置 配置后下发）
+                string menuCode = busiParam.Value<string>("menu_code");
+                string funcSign = busiParam.Value<string>("func_sign");
 
-                // 各模块详细入参（JSON 格式）
+                // 各业务详细入参（JSON 字符串）
                 string data = busiParam.Value<string>("data");
 
-                object result = null;
+                object result;
 
-                switch (functionCode ?? funcSign)
+                // 优先按入口字段分流：两条线的 code 命名空间相互独立，不可共用 switch
+                if (!string.IsNullOrEmpty(moduleCode))
                 {
-                    case "QueryData":
-                        result = _helper.QueryData(data, jsonParams);
-                        break;
-                    case "UploadData":
-                        result = _helper.UploadData(data, jsonParams);
-                        break;
-                    default:
-                        return new PluginResult
-                        {
-                            Code = -1,
-                            Message = $"未知的功能标识: {functionCode ?? funcSign}"
-                        };
+                    result = DispatchEvent(moduleCode, functionCode, data, jsonParams);
+                }
+                else if (!string.IsNullOrEmpty(menuCode))
+                {
+                    result = DispatchMenu(menuCode, funcSign, data, jsonParams);
+                }
+                else
+                {
+                    return new PluginResult
+                    {
+                        Code = -1,
+                        Message = "无法识别调用场景：module_code 与 menu_code 均为空"
+                    };
                 }
 
-                LogTools.Info($"[EB_MyFeature] {functionCode ?? funcSign} completed");
-                return new PluginResult
-                {
-                    Code = 0,
-                    Message = "操作成功",
-                    Data = result
-                };
+                LogTools.Info($"[EB_MyFeature] dispatch completed");
+                return new PluginResult { Code = 0, Message = "操作成功", Data = result };
             }
             catch (Exception ex)
             {
@@ -128,6 +163,34 @@ namespace Plugins.EB_MyFeature
                     Code = -1,
                     Message = $"执行失败：{ex.Message}"
                 };
+            }
+        }
+
+        /// <summary>
+        /// 统一事件型路由：按 function_code 分发到具体业务
+        /// </summary>
+        private object DispatchEvent(string moduleCode, string functionCode, string data, string jsonParams)
+        {
+            switch (functionCode)
+            {
+                case "QueryData":
+                    return _helper.QueryData(data, jsonParams);
+                default:
+                    throw new NotSupportedException($"未知 function_code: {functionCode}（module_code={moduleCode}）");
+            }
+        }
+
+        /// <summary>
+        /// 扩展菜单型路由：按 func_sign 分发到具体业务
+        /// </summary>
+        private object DispatchMenu(string menuCode, string funcSign, string data, string jsonParams)
+        {
+            switch (funcSign)
+            {
+                case "UploadData":
+                    return _helper.UploadData(data, jsonParams);
+                default:
+                    throw new NotSupportedException($"未知 func_sign: {funcSign}（menu_code={menuCode}）");
             }
         }
 
@@ -249,17 +312,41 @@ namespace Plugins.EB_MyFeature.Helper
 
 ### 4. version.json 模板
 
+> 🚨 **HIS 字段命名两处故意拼错**（不是文档错），照抄即可：
+> - `assimbelyName`（少一个 `e`，正确英文应为 `assemblyName`）
+> - `flieList`（`i` 在 `e` 前，正确英文应为 `fileList`）
+>
+> Copilot / IDE 自动补全 / 格式化工具 / Prettier 都倾向"善意纠正"成正确拼写——一改 HIS 立刻加载失败。提交前必须 `grep -n 'assemblyName\|fileList' version.json`，命中即说明被改坏了。
+
 ```json
 {
-    "currentVersion": "1.0.0",
-    "hisClientVersion": "5.0.0",
-    "flieList": [
-        "Plugins.EB_MyFeature.dll",
-        "EB_MyFeature.config"
-    ],
-    "versionDescribe": "初始版本：实现XX功能对接"
+  "assimbelyName": "Plugins.EB_MyFeature.dll",
+  "isClient": false,
+  "currentVersion": "2.0.0.1",
+  "hisClientVersion": "2.0.0.1",
+  "versionDescribe": [
+    { "sort": 1, "text": "初始版本：实现XX功能对接" }
+  ],
+  "flieList": [
+    { "sort": 1, "fileName": "Plugins.EB_MyFeature.dll", "fileVersion": "2.0.0.1" }
+  ],
+  "versionNote": [
+    { "sort": 1, "text": "务必进行影响的业务插件更新、测试" }
+  ]
 }
 ```
+
+**字段说明**：
+
+| 字段 | 含义 |
+|------|------|
+| `assimbelyName` | 应用程序集名称，**必须等于主 DLL 文件名**（包含 `.dll` 后缀） |
+| `isClient` | 是否 HIS 客户端（业务插件填 `false`） |
+| `currentVersion` | 升级包版本号，**不能与历史版本重复**，重复则上传失败 |
+| `hisClientVersion` | 依赖的 HIS 客户端版本号 |
+| `versionDescribe[]` | 版本描述列表（数组，每项含 `sort` + `text`） |
+| `flieList[]` | 文件清单（数组，每项含 `sort` + `fileName` + `fileVersion`） |
+| `versionNote[]` | 版本注意事项（数组，每项含 `sort` + `text`） |
 
 ## 开发步骤
 
@@ -287,12 +374,19 @@ namespace Plugins.EB_MyFeature.Helper
 
 ### 插件 2.0 部署流程
 
-1. 将生成的 DLL 及依赖 DLL，连同 `version.json` 一起打包成 ZIP
+1. 将生成的 DLL 及依赖 DLL，连同 `version.json` 一起打包成 ZIP（压缩前不要建文件夹，所有文件平铺在 ZIP 根）
 2. 进入产品：**系统管理 → 插件版本管理 → 业务插件**
-3. 点「上传新版本」；后续更新选中记录点「重传」
+3. 点「上传新版本」；后续更新选中对应记录点右边的「重传」
 4. 上传成功后，进入 **系统管理 → 统一事件接口 → 接口源管理** → 点「新增程序集」
 5. 接口名称自定义，程序集名称选择 ZIP 中的主 DLL，序号保证不重复
 6. 确定保存
+
+> 🚨 **强约束：三个名称必须完全一致**（含大小写、含 `.dll` 后缀）
+> 1. `version.json` 里的 `assimbelyName`
+> 2. ZIP 包里实际的主 DLL 文件名
+> 3. 「接口源管理 → 新增程序集」时下拉选中的程序集名称
+>
+> 任一不一致 HIS 都加载不到插件，且报错信息往往不直接指向命名问题（常见症状：插件在事件管理列表里看不到、或出现"程序集未注册"类错误）。重命名工程时务必同步检查这三处。
 
 ## 接口配置方式
 

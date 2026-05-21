@@ -1,6 +1,6 @@
 # HIS 知识库
 
-**最后更新时间**: 2026-04-23
+**最后更新时间**: 2026-04-28
 **整理者**: Keiskei
 **知识库状态**: 持续完善中（医保文档已充实，HIS 标准化接口已入库）
 
@@ -59,8 +59,20 @@ his-wiki/
 │   │   ├── pattern-order-lifecycle.md
 │   │   └── pattern-github-backup-lessons.md
 │   │
-│   ├── troubleshooting/         # 故障案例
-│   │   └── issue-20250710-bed-conflict.md
+│   ├── winforms-ui/             # WinForms UI 组件库（按库分子站）
+│   │   ├── index.md             # UI 库子站总入口
+│   │   └── sunnyui/             # SunnyUI 子站
+│   │       ├── index.md         # SunnyUI 入口（全局陷阱 + 控件导航）
+│   │       ├── 入门/             # 安装/主题/字体图标/国际化/常见问题
+│   │       ├── 控件/             # 20 个控件文档 + 一览表
+│   │       ├── 窗体/             # UIForm / UILoginForm
+│   │       ├── 多页面框架/        # IFrame 框架 / DPI 适配 / 全局字体
+│   │       ├── 工具类库/          # IniFile / IniConfig / Json
+│   │       └── 升级指南/          # 3.5.2 → 3.6.0
+│   │
+│   ├── troubleshooting/         # 故障案例（按模块分子目录）
+│   │   ├── inpatient/           # 住院系统故障
+│   │   └── medical-insurance/   # 医保故障
 │   │
 │   └── work-log/                # 工作日志
 │       ├── 2026-04-15-summary.md
@@ -123,8 +135,9 @@ his-wiki/
 | 接口模板 | 已完成 | 100% | 插件开发、CRUD、查询、第三方对接、医保插件 |
 | 医保开发 | 已完成 | 90% | 架构、接口、数据库、流程、通信、CA签名已整理 |
 | 标准化接口 | 进行中 | 40% | 总览、基础数据、挂号费用、医保集成已整理 |
-| 故障案例 | 进行中 | 25% | 床位冲突案例已整理，更多案例待提取 |
+| 故障案例 | 进行中 | 30% | 按模块分子目录，已入库3个案例 |
 | 设计模式 | 进行中 | 50% | 医嘱状态机、GitHub备份经验已整理 |
+| WinForms UI 库 | 进行中 | 60% | SunnyUI 子站已收录 raw 子集：20 控件 + 2 窗体 + 多页框架 + 3 工具类（V3.9.7 同步） |
 
 ---
 
@@ -164,15 +177,40 @@ his-wiki/
 - [CA签名模块](medical-insurance/ca-signature.md)
 
 ### 故障排查
-- [床位冲突案例](troubleshooting/issue-20250710-bed-conflict.md)
+
+**住院（inpatient）**
+- [床位冲突案例](troubleshooting/inpatient/issue-20250710-bed-conflict.md)
+
+**医保（medical-insurance）**
+- [住院护士站打标后自动触发费用明细上传](troubleshooting/medical-insurance/issue-20260424-inpatient-nurse-fee-upload-after-item-marking.md)
+- [导入医保目录时 py_code 字段长度不足](troubleshooting/medical-insurance/issue-20260428-ins-item-py-code-too-long.md)
 
 ### 设计模式
 - [医嘱状态机](patterns/pattern-order-lifecycle.md)
 - [GitHub备份经验教训](patterns/pattern-github-backup-lessons.md)
 
+### WinForms UI 库
+- [WinForms UI 库总入口](winforms-ui/index.md)
+- [SunnyUI 子站入口](winforms-ui/sunnyui/index.md) — 含全局陷阱、通用属性约定、控件导航
+- [SunnyUI 控件一览表](winforms-ui/sunnyui/控件/index.md) — 20 个控件速查
+- [SunnyUI 主题系统](winforms-ui/sunnyui/入门/主题.md) — Style/StyleCustomMode 必读
+- [SunnyUI 常见问题](winforms-ui/sunnyui/入门/常见问题.md) — 17 个高频踩坑
+
 ---
 
 ## 操作日志
+
+### 2026-05-21
+- 新增 WinForms UI 库子站：基于 raw/SunnyUI文档/ 整理 SunnyUI（V3.9.7 同步）AI 优先版 wiki 化文档 37 篇
+- 子站结构：入门 5 + 控件 21（20+索引） + 窗体 2 + 多页面框架 3 + 工具类库 3 + 升级指南 1 + 顶层 2
+- 风格：去图保表 + 全局陷阱前置 + 通用属性提取（不重复进每个控件页）
+
+### 2026-04-28
+- 故障案例目录重组：troubleshooting/ 下按模块拆分子目录（inpatient/、medical-insurance/）
+- 新增医保故障案例：ins_item.py_code varchar(20) 长度不足导致导入失败
+
+### 2026-04-24
+- 新增医保故障案例：住院护士站缺少参数（序号 1、2）导致 `1206` 打标后自动触发 `1207` 住院费用明细上传，护士电脑无医保网时在医保初始化阶段报错
 
 ### 2026-04-23
 - 入库 HIS 接口文档 1.0（15份标准/对接文档）

@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="author" content="Keiskei" />
+  <title>住院流程与表读写关系</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --ink: #17201c;
+      --muted: #5f6f68;
+      --panel: rgba(255,255,255,.84);
+      --line: rgba(23,32,28,.14);
+      --green: #006b4f;
+      --green-2: #0b8a68;
+      --amber: #c9781a;
+      --blue: #1d5d86;
+      --red: #b83b3b;
+      --shadow: 0 20px 55px rgba(38, 52, 45, .16);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "HarmonyOS Sans SC", "Microsoft YaHei UI", "Noto Sans CJK SC", sans-serif;
+      background:
+        radial-gradient(circle at 8% 9%, rgba(29,93,134,.16), transparent 29rem),
+        radial-gradient(circle at 86% 2%, rgba(0,107,79,.18), transparent 26rem),
+        linear-gradient(135deg, #f6fbff 0%, #eef7f1 48%, #f8f0e4 100%);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .25;
+      background-image:
+        linear-gradient(rgba(23,32,28,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,32,28,.06) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(to bottom, black, transparent 78%);
+    }
+
+    .page {
+      width: 95%;
+      margin: 0 auto;
+      padding: 34px 0 70px;
+      position: relative;
+    }
+
+    .doc-nav {
+      position: sticky;
+      top: 12px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding: 13px 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,.72);
+      box-shadow: 0 10px 30px rgba(38, 52, 45, .10);
+      backdrop-filter: blur(12px);
+    }
+
+    .doc-nav span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .nav-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .doc-nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #fff;
+      background: linear-gradient(135deg, var(--green), var(--green-2));
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .doc-nav a:nth-child(2) {
+      background: linear-gradient(135deg, var(--blue), #154360);
+    }
+
+    .doc-nav a:hover { filter: brightness(.94); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 26px;
+    }
+
+    .title-card,
+    .route-card,
+    .section,
+    .step-card,
+    .matrix-card {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,.65);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .title-card {
+      border-radius: 30px;
+      padding: 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .title-card::after {
+      content: "INPATIENT\A FLOWS";
+      white-space: pre;
+      position: absolute;
+      right: 22px;
+      bottom: 18px;
+      color: rgba(29,93,134,.09);
+      font-size: clamp(42px, 6vw, 86px);
+      line-height: .82;
+      font-weight: 900;
+      letter-spacing: -4px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-family: "STZhongsong", "SimSun", serif;
+      font-size: clamp(34px, 5vw, 68px);
+      line-height: 1.02;
+      letter-spacing: -1.5px;
+    }
+
+    .subtitle {
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.8;
+      margin: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .route-card {
+      border-radius: 30px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 310px;
+    }
+
+    .route-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .route-title h2,
+    .section h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -.4px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.72);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .routes {
+      display: grid;
+      gap: 14px;
+    }
+
+    .route-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 13px;
+      align-items: center;
+      padding: 15px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.62);
+    }
+
+    .route-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 900;
+      font-size: 18px;
+      background: var(--green);
+    }
+
+    .route-mark.national { background: var(--blue); }
+    .route-mark.fifth { background: var(--green); }
+    .route-item strong { display: block; font-size: 16px; margin-bottom: 5px; }
+    .route-item span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+    code {
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      font-size: .92em;
+      padding: 2px 6px;
+      border-radius: 7px;
+      background: rgba(0,107,79,.09);
+      color: #045a43;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 18px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.74);
+    }
+
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); }
+    .dot.query { background: var(--blue); }
+    .dot.write { background: var(--amber); }
+    .dot.his { background: var(--red); }
+
+    .section {
+      border-radius: 28px;
+      padding: 26px;
+      margin: 24px 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .section-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .flow-chart {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px;
+      margin: 16px 0 18px;
+      background: rgba(255,255,255,.78);
+      overflow-x: auto;
+    }
+
+    .flow-chart pre { margin: 0; }
+
+    .chapter-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .chapter-tabs a {
+      display: block;
+      min-height: 68px;
+      padding: 13px 15px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,.72);
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 900;
+    }
+
+    .chapter-tabs span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    .steps {
+      display: grid;
+      gap: 18px;
+    }
+
+    .step-card {
+      border-radius: var(--radius);
+      padding: 22px;
+      display: grid;
+      grid-template-columns: 230px 1fr;
+      gap: 22px;
+      border: 1px solid rgba(255,255,255,.68);
+    }
+
+    .step-index {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      justify-content: space-between;
+      border-right: 1px dashed rgba(23,32,28,.18);
+      padding-right: 18px;
+    }
+
+    .step-no {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, var(--blue), #0b3d5c);
+      font-weight: 900;
+      font-size: 21px;
+    }
+
+    .step-index h3 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -.5px;
+    }
+
+    .step-index p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .io-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .io-box {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: rgba(255,255,255,.66);
+    }
+
+    .io-box h4 {
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+    }
+
+    .table-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .table-chip {
+      display: grid;
+      grid-template-columns: minmax(170px, 230px) 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 11px 12px;
+      border-radius: 13px;
+      background: rgba(247,250,246,.9);
+      border: 1px solid rgba(23,32,28,.08);
+    }
+
+    .table-chip b {
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      font-size: 13px;
+      color: #053f31;
+      word-break: break-word;
+    }
+
+    .table-chip span {
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    .matrix-card {
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.68);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,.76);
+    }
+
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--line);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    th {
+      background: linear-gradient(135deg, rgba(29,93,134,.95), rgba(2,74,58,.95));
+      color: #fff;
+      font-size: 13px;
+      letter-spacing: .05em;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { font-weight: 900; color: #053f31; width: 180px; }
+
+    .callout {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(201,120,26,.25);
+      background: linear-gradient(135deg, rgba(255,248,231,.88), rgba(255,255,255,.62));
+      margin-top: 18px;
+    }
+
+    .callout .icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      background: var(--amber);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .callout strong { display: block; margin-bottom: 5px; }
+    .callout p { margin: 0; color: var(--muted); line-height: 1.7; }
+
+    .footer {
+      margin-top: 24px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .sub-heading {
+      margin: 8px 0 6px;
+      font-size: 18px;
+      letter-spacing: -.3px;
+    }
+
+    .sub-lead {
+      color: var(--muted);
+      margin: 0 0 14px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    @media (max-width: 1100px) {
+      .hero { grid-template-columns: 1fr; }
+      .step-card { grid-template-columns: 1fr; }
+      .step-index { border-right: 0; border-bottom: 1px dashed rgba(23,32,28,.18); padding-right: 0; padding-bottom: 16px; }
+    }
+
+    @media (max-width: 720px) {
+      .page { width: min(100% - 24px, 1380px); padding-top: 18px; }
+      .title-card, .route-card, .section { padding: 20px; border-radius: 22px; }
+      .io-grid, .chapter-tabs { grid-template-columns: 1fr; }
+      .table-chip { grid-template-columns: 1fr; }
+      .section-head { align-items: flex-start; flex-direction: column; }
+      .doc-nav { align-items: stretch; flex-direction: column; }
+      th, td { padding: 12px; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      body::before { display: none; }
+      .title-card, .route-card, .section, .step-card, .matrix-card { box-shadow: none; background: #fff; }
+      .page { width: 100%; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="doc-nav" aria-label="教学文档导航">
+      <span><strong>教学路径：</strong>本页是住院专题补充，包含住院登记流程和住院结算流程；如需先理解 HIS、医保总控、医保插件三层关系，请返回总览页。</span>
+      <div class="nav-actions">
+        <a href="./三层架构流程图.html">返回三层架构总览</a>
+        <a href="./门诊挂号流程-表读写关系.html">查看门诊流程</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <article class="title-card">
+        <span class="eyebrow">HIS x 上海医保 · 住院闭环联调</span>
+        <h1>住院流程<br />表读写关系图</h1>
+        <p class="subtitle">按真实住院使用路径拆解：一条是“入院登记 -> 医保登记 -> 出院登记”，另一条是“医嘱/费用打标 -> 预结算 -> 正式结算”。登记链路和结算链路要分开看，避免把所有动作混成一条交易线。</p>
+      </article>
+
+      <aside class="route-card">
+        <div>
+          <div class="route-title">
+            <h2>双通道路由</h2>
+            <span class="pill">入口：<code>ins_id</code></span>
+          </div>
+          <div class="routes">
+            <div class="route-item">
+              <div class="route-mark fifth">11</div>
+              <div>
+                <strong>上海医保五期</strong>
+                <span>入院登记走 <code>SJ11</code>，预结算走 <code>SN01</code> 明细账单提交和 <code>SI51</code> 住院收费试算，正式结算走 <code>SI52</code>。</span>
+              </div>
+              <code>ROUTE-FIFTH</code>
+            </div>
+            <div class="route-item">
+              <div class="route-mark national">12</div>
+              <div>
+                <strong>国家医保</strong>
+                <span>入院办理走 <code>2401</code>，费用上传走 <code>2301</code>，预结算走 <code>2303</code>，正式结算走 <code>2304</code>。</span>
+              </div>
+              <code>ROUTE-NATIONAL</code>
+            </div>
+          </div>
+        </div>
+        <div class="legend">
+          <span class="tag"><i class="dot query"></i>查询表</span>
+          <span class="tag"><i class="dot write"></i>新增/更新表</span>
+          <span class="tag"><i class="dot his"></i>HIS 业务生成</span>
+          <span class="tag"><i class="dot"></i>医保插件处理</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" id="inpatient-overview">
+      <div class="section-head">
+        <div>
+          <h2>住院专题总览</h2>
+          <p>住院应拆成登记链路和结算链路，同时把医保总控 <code>business_type</code>、总控 <code>Business.*</code> 编排方法、医保插件方法放在一条线上看。登记链路建立医保就诊上下文；结算链路读取这个上下文，再上传费用、预结算、正式结算。</p>
+        </div>
+        <span class="pill">入口：入院 / 出院 / 结算</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+flowchart TB
+    START[住院业务入口<br/>医保总控 business_type] --> ID[1201 住院选择保险<br/>HospitalChoseInsure -> Identify<br/>读卡并确认医保档案]
+    START --> REG[第一章：住院登记流程]
+    START --> SET[第二章：住院结算流程]
+
+    REG --> COME[1202/1203 入院/补登记<br/>HospitalIn/HospitalSupplement -> ComeInSwap<br/>医保入院登记]
+    COME --> REG_TX[国家 2401<br/>五期 SJ11]
+    REG_TX --> VISIT[写 ins_visit<br/>保存医保就诊上下文]
+    VISIT --> LEAVE[1209 出院登记<br/>HospitalOut -> LeaveSwap<br/>HIS 出院登记后写本地出院状态]
+    VISIT --> REG_REV[1204 住院取消保险<br/>HospitalCancelInsure -> ComeInDelSwap]
+    REG_REV --> REG_BACK[国家 2404<br/>五期 SJ21]
+    LEAVE --> LEAVE_REV[1210 撤销出院<br/>HospitalOutCancel -> LeaveDelSwap]
+    LEAVE_REV --> LEAVE_BACK[国家 2405<br/>本地回写出院撤销状态]
+
+    SET --> MARK[1206 住院医保项目打标<br/>HospitalInsureItemCheck -> ItemMarking]
+    MARK --> WIPE[1219/1211 住院预结算<br/>HospitalPreSettle/HospitalSettle -> WipeoffMoney]
+    WIPE --> FEE[GetZYFeeDetail<br/>聚合住院费用和对码]
+    FEE --> PRE_TX[国家 2301/2402/2303<br/>五期 SN01/SI51]
+    PRE_TX --> PRE_SAVE[写 ins_fee_detail / ins_visit]
+    PRE_SAVE --> FEE_REV[1208 住院费用明细撤销<br/>DetailUploadDel<br/>国家 2302；五期 SN02]
+    PRE_SAVE --> SWAP[1211 住院结算<br/>HospitalSettle -> SettleSwap<br/>住院正式结算]
+    SWAP --> SET_TX[国家 2304<br/>五期 SI52]
+    SET_TX --> BAL[写 ins_balance / ins_balance_info]
+    BAL --> HIS_BAL[HIS 本地结算闭环<br/>写 public.pt_balance / public.pt_balance_detail]
+    HIS_BAL --> SET_REV[1212 住院取消结算<br/>HospitalSettleBack -> SettleDelSwap]
+    SET_REV --> SET_BACK[国家 2305<br/>五期 SK01]
+    REG_BACK --> HIS_BACK[HIS 回写住院状态]
+    LEAVE_BACK --> HIS_BACK
+    FEE_REV --> HIS_BACK
+    SET_BACK --> HIS_BACK
+
+    style REG fill:#e8f8f5,stroke:#117864
+    style SET fill:#fef5e7,stroke:#b9770e
+    style MARK fill:#117864,color:#fff
+    style VISIT fill:#d5f5e3,stroke:#27ae60
+    style BAL fill:#d5f5e3,stroke:#27ae60
+    style HIS_BAL fill:#fcf3cf,stroke:#b7950b
+    style REG_REV fill:#fdecea,stroke:#c0392b
+    style LEAVE_REV fill:#fdecea,stroke:#c0392b
+    style FEE_REV fill:#fdecea,stroke:#c0392b
+    style SET_REV fill:#fdecea,stroke:#c0392b
+    style HIS_BACK fill:#d5f5e3,stroke:#27ae60
+</pre>
+      </div>
+      <div class="chapter-tabs">
+        <a href="#control-map">住院编号映射<span>医保总控 business_type 到插件方法的对应关系。</span></a>
+        <a href="#register-chapter">第一章：住院登记流程<span>入院登记、医保登记、本地出院状态。</span></a>
+        <a href="#settlement-chapter">第二章：住院结算流程<span>医保打标 → 费用上传 → 预结算 → 正式结算。</span></a>
+        <a href="#reverse-chapter">第三章：住院反流程<span>撤销入院、撤销出院、撤销明细、结算作废。</span></a>
+      </div>
+    </section>
+
+    <section class="section" id="control-map">
+      <div class="section-head">
+        <div>
+          <h2>住院总控编号与插件方法映射</h2>
+          <p>住院专题只列本页涉及的核心入口。排查时先从 HIS 请求里的 <code>business_type</code> 定位总控 <code>Business.*</code> 方法，再落到上海医保插件方法。</p>
+        </div>
+        <span class="pill">1201-1219</span>
+      </div>
+      <div class="matrix-card">
+        <table>
+          <thead><tr><th>总控编号</th><th>HIS 入口</th><th>总控编排方法</th><th>医保插件方法</th><th>在本页流程中的作用</th></tr></thead>
+          <tbody>
+            <tr><td>1201</td><td>住院选择保险</td><td><code>Business.HospitalChoseInsure</code></td><td><code>Identify</code>、<code>SelfBalance</code></td><td>读卡、保存医保档案、确定 <code>ins_id</code>，为后续入院登记和结算建立通道上下文。</td></tr>
+            <tr><td>1202 / 1203 / 1204</td><td>入院登记 / 补登记 / 取消保险</td><td><code>Business.HospitalIn</code> / <code>HospitalSupplement</code> / <code>HospitalCancelInsure</code></td><td><code>ComeInSwap</code> / <code>ComeInDelSwap</code></td><td>建立或撤销医保端住院登记关系；这条线处理的是就诊上下文，不是费用结算。</td></tr>
+            <tr><td>1206 / 1207 / 1208</td><td>住院打标 / 明细上传 / 明细撤销</td><td><code>Business.HospitalInsureItemCheck</code> / <code>HospitalDetailUpload</code> / <code>HospitalDetailCancel</code></td><td><code>ItemMarking</code> / <code>DetailUpload</code> / <code>DetailUploadDel</code></td><td>打标只做本地对码和限制判断；明细上传/撤销处理医保端费用明细状态。</td></tr>
+            <tr><td>1209 / 1210</td><td>出院登记 / 撤销出院</td><td><code>Business.HospitalOut</code> / <code>HospitalOutCancel</code></td><td><code>LeaveSwap</code> / <code>LeaveDelSwap</code></td><td>出院登记回写本地出院状态；撤销出院常用于重新上传明细或重新预结算前解除出院状态。</td></tr>
+            <tr><td>1219 / 1211</td><td>住院预结算 / 住院正式结算</td><td><code>Business.HospitalPreSettle</code> / <code>HospitalSettle</code></td><td><code>WipeoffMoney</code> / <code>SettleSwap</code></td><td><code>1219</code> 单独用于预结算展示；<code>1211</code> 住院结算入口内部也会先走 <code>WipeoffMoney</code> 再走 <code>SettleSwap</code>。</td></tr>
+            <tr><td>1212</td><td>住院取消结算</td><td><code>Business.HospitalSettleBack</code></td><td><code>SettleDelSwap</code></td><td>撤销已确认的住院医保结算，随后 HIS 冲销 <code>public.pt_balance / public.pt_balance_detail</code>。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="register-chapter">
+      <div class="section-head">
+        <div>
+          <h2>第一章：住院登记流程</h2>
+          <p>业务路径：HIS 入院登记 -> 医保入院登记 -> HIS 出院登记。医保登记成功后写 <code>ins_visit</code>，后续预结算和正式结算都依赖它。</p>
+        </div>
+        <span class="pill">主链路：1202 → 1209</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+%%{init: { "sequence": { "mirrorActors": false, "messageAlign": "center" } }}%%
+sequenceDiagram
+    autonumber
+    participant HIS as HIS 入院登记
+    participant COME as 1202 HospitalIn<br/>ComeInSwap
+    participant DB as 本地库<br/>HIS + insur
+    participant CN as 国家医保<br/>2401
+    participant SH as 上海五期<br/>SJ11
+    participant LEAVE as 1209 HospitalOut<br/>LeaveSwap
+
+    HIS->>COME: business_type=1202<br/>发起医保入院登记
+    COME->>DB: 读 ins_archive / inp_visit<br/>读 pt_diagnosis / 医生科室对码
+    alt 国家医保
+      COME->>CN: 2401 入院办理
+      CN-->>COME: mdtrt_id 等就诊信息
+    else 上海五期
+      COME->>SH: SJ11 登记业务<br/>djtype=入院登记
+      SH-->>COME: 登记流水号<br/>就诊单元号
+    end
+    COME->>DB: 写 ins_visit
+    HIS->>LEAVE: business_type=1209<br/>HIS 出院登记后通知医保插件
+    LEAVE->>DB: 更新 ins_visit<br/>本地出院状态
+</pre>
+      </div>
+      <div class="steps">
+        <article class="step-card">
+          <div class="step-index"><div><div class="step-no">1</div><h3>入院基础资料</h3><p>读取医保档案、住院信息、入院诊断、医生和科室对码。</p></div><span class="pill">登记前置</span></div>
+          <div class="io-grid">
+            <div class="io-box"><h4><i class="dot query"></i>查询表</h4><div class="table-list">
+              <div class="table-chip"><b>insur.ins_archive<br />insur.ins_archive_vs</b><span>读取患者医保档案、参保地、险种和就诊凭证资料。</span></div>
+              <div class="table-chip"><b>public.inp_visit<br />public.pt_diagnosis</b><span>读取住院基本信息、入院诊断、住院号、入院时间。</span></div>
+              <div class="table-chip"><b>qw_base.b_staff<br />qw_base.b_disease</b><span>读取医生、诊断基础资料，校验医保对照。</span></div>
+            </div></div>
+            <div class="io-box"><h4><i class="dot write"></i>新增/更新表</h4><div class="table-list">
+              <div class="table-chip"><b>无</b><span>该阶段只读取和校验，不直接写中心过程表。</span></div>
+            </div></div>
+          </div>
+        </article>
+
+        <article class="step-card">
+          <div class="step-index"><div><div class="step-no">2</div><h3>医保入院登记</h3><p>总控 <code>1202</code> 进入 <code>Business.HospitalIn</code>，插件 <code>ComeInSwap</code> 按通道调用国家 <code>2401</code> 或五期 <code>SJ11</code>。</p></div><span class="pill">医保登记</span></div>
+          <div class="io-grid">
+            <div class="io-box"><h4><i class="dot query"></i>查询表</h4><div class="table-list">
+              <div class="table-chip"><b>insur.ins_system</b><span>判断国家医保或上海五期医保。</span></div>
+              <div class="table-chip"><b>insur.ins_org_vs</b><span>读取机构医保对照信息。</span></div>
+            </div></div>
+            <div class="io-box"><h4><i class="dot write"></i>新增/更新表</h4><div class="table-list">
+              <div class="table-chip"><b>insur.ins_visit</b><span>保存医保住院就诊上下文，包含中心就诊标识、登记流水、住院号和后续结算需要的业务信息。</span></div>
+            </div></div>
+          </div>
+        </article>
+
+        <article class="step-card">
+          <div class="step-index"><div><div class="step-no">3</div><h3>本地出院登记</h3><p>总控 <code>1209</code> 进入 <code>Business.HospitalOut</code>，插件 <code>LeaveSwap</code> 先更新本地出院状态；国家医保中心出院办理在预结算阶段触发。</p></div><span class="pill">本地状态</span></div>
+          <div class="io-grid">
+            <div class="io-box"><h4><i class="dot query"></i>查询表</h4><div class="table-list">
+              <div class="table-chip"><b>insur.ins_system<br />insur.ins_visit</b><span>确认保险系统和当前医保就诊记录。</span></div>
+            </div></div>
+            <div class="io-box"><h4><i class="dot write"></i>新增/更新表</h4><div class="table-list">
+              <div class="table-chip"><b>insur.ins_visit</b><span>写本地已出院、本地出院登记时间、状态和来源。</span></div>
+            </div></div>
+          </div>
+        </article>
+      </div>
+      <div class="callout">
+        <div class="icon">!</div>
+        <div><strong>住院登记验证重点</strong><p>登记链路联调时不能只看 mock 返回成功，至少要按以下顺序确认数据落库：医保入院登记前 <code>insur.ins_archive</code> 和 <code>insur.ins_archive_vs</code> 已绑定，HIS 侧 <code>public.inp_visit</code>（住院号、入院时间、床位、科室）和 <code>public.pt_diagnosis</code>（入院诊断）已生成；医保入院登记后 <code>insur.ins_visit</code> 含国家 <code>mdtrt_id</code> 或五期登记流水号 + 就诊单元号；<code>LeaveSwap</code> 完成后 <code>insur.ins_visit</code> 出院状态字段（本地已出院、本地出院登记时间）被更新。后续预结算和正式结算都从 <code>ins_visit</code> 读上下文，登记不闭环就别进结算。登记链路不经过医保打标（打标属于第二章结算流程的前置步骤）。</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="settlement-chapter">
+      <div class="section-head">
+        <div>
+          <h2>第二章：住院结算流程</h2>
+          <p>业务路径：住院医嘱/费用 → 医保打标 → 费用明细上传 → 预结算 → 正式结算 → HIS 收款。前置打标只读本地对照表，不调中心；打标完成后才进入中心交易主链路。</p>
+        </div>
+        <span class="pill">主链路：1206 → 1219/1211</span>
+      </div>
+
+      <h3 class="sub-heading">前置：医保打标（本地判断，不调中心）</h3>
+      <p class="sub-lead">住院医嘱和费用项目进入医保结算前，先判断是否医保项目、限制项目是否允许报销、自费/医保标识。打标只读本地对照表（<code>ins_system</code> / <code>ins_item_vs</code> / <code>ins_item</code>），不是中心交易，未对码或限制不允许的项目会被拦截，不会进入后续费用上传。</p>
+      <div class="flow-chart">
+<pre class="mermaid">
+flowchart LR
+    ORDER[住院医嘱 / 费用项目] --> MARK[1206 HospitalInsureItemCheck<br/>ItemMarking]
+    MARK --> SYS[读 ins_system<br/>必要时读 ins_system_mapping]
+    SYS --> VS[读 ins_item_vs / ins_item<br/>本地项目医保对码和限制规则]
+    VS --> JUDGE{规则判断}
+    JUDGE -->|未对码或非医保项目| SELF[返回自费标识]
+    JUDGE -->|普通医保项目| INS[返回医保标识]
+    JUDGE -->|限制项目| ASK[弹窗确认<br/>是否可医保报销]
+    ASK -->|是| INS
+    ASK -->|否| SELF
+    INS --> PRE[1219/1211<br/>WipeoffMoney<br/>费用上传和住院预结算]
+    SELF --> PRE
+
+    style MARK fill:#117864,color:#fff
+    style JUDGE fill:#f39c12,color:#fff
+    style ASK fill:#f9e79f,stroke:#b9770e
+</pre>
+      </div>
+
+      <h3 class="sub-heading">主链路：费用聚合 → 上传 → 预结算 → 正式结算 → HIS 收款</h3>
+      <div class="flow-chart">
+<pre class="mermaid">
+%%{init: { "sequence": { "mirrorActors": false, "messageAlign": "center" } }}%%
+sequenceDiagram
+    autonumber
+    participant HIS as HIS 住院结算
+    participant MARK as 1206 HospitalInsureItemCheck<br/>ItemMarking 医保打标
+    participant PRE as 1219/1211<br/>WipeoffMoney 住院预结算
+    participant DB as 本地库<br/>HIS + insur
+    participant CN as 国家医保<br/>2301/2402/2303
+    participant SH as 上海五期<br/>SN01/SI51
+    participant SWAP as 1211 HospitalSettle<br/>SettleSwap 正式结算
+
+    HIS->>MARK: business_type=1206<br/>住院医嘱/费用进入医保结算前打标
+    MARK->>DB: 读 ins_system / ins_item_vs / ins_item
+    MARK-->>HIS: 返回医保/自费/限制确认结果
+    HIS->>PRE: business_type=1219 或 1211<br/>发起住院预结算
+    PRE->>DB: 读 ins_visit、inp_fee_detail、inp_order<br/>读出院信息、出院诊断
+    PRE->>DB: 重置或读取 ins_fee_detail 提交状态
+    alt 国家医保
+      PRE->>CN: 2301 住院费用明细上传
+      PRE->>DB: 写 ins_fee_detail
+      PRE->>CN: 2402 出院办理
+      PRE->>CN: 2303 住院预结算
+    else 上海五期
+      PRE->>SH: SN02 撤销旧明细账单<br/>必要时继续
+      PRE->>SH: SN01 明细账单提交
+      PRE->>DB: 写 ins_fee_detail
+      PRE->>SH: SI51 住院收费试算
+    end
+    PRE->>DB: 更新 ins_visit<br/>预结算结果
+    HIS->>SWAP: business_type=1211<br/>确认正式结算
+    alt 国家医保
+      SWAP->>CN: 2304<br/>住院结算
+    else 上海五期
+      SWAP->>SH: SI52<br/>住院收费确认
+    end
+    SWAP->>DB: 写 ins_balance<br/>写 ins_balance_info
+    SWAP-->>HIS: 返回 settle_type<br/>和支付拆分
+    HIS->>DB: 写 public.pt_balance<br/>写 public.pt_balance_detail
+</pre>
+      </div>
+      <div class="matrix-card">
+        <table>
+          <thead><tr><th>节点</th><th>读表</th><th>写表</th><th>中心交易</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>费用聚合</td><td>public.inp_fee、public.inp_fee_detail、public.inp_order、public.inp_visit、public.pt_diagnosis、qw_base.b_fee_item、insur.ins_item_vs、insur.ins_item、insur.ins_fee_detail</td><td>无</td><td>无</td><td>聚合住院费用、医嘱、出院信息、诊断和项目对码，预结算前拦截未对码和缺码。</td></tr>
+            <tr><td>费用明细上传</td><td>insur.ins_visit、insur.ins_fee_detail</td><td>insur.ins_fee_detail</td><td>国家 2301；五期 SN01</td><td>写回费用明细流水号、明细账单号、医保结算范围费用等上传结果。</td></tr>
+            <tr><td>出院和预结算</td><td>insur.ins_visit、public.inp_visit、public.pt_diagnosis</td><td>insur.ins_visit</td><td>国家 2402/2303；五期 SI51</td><td>国家分支在预结算阶段调用出院办理；五期写回计算申请序号和收费试算结果。</td></tr>
+            <tr><td>正式结算</td><td>insur.ins_visit、insur.ins_archive、insur.ins_fee_detail</td><td>insur.ins_balance、insur.ins_balance_info</td><td>国家 2304；五期 SI52</td><td>保存医保正式结算主记录、过程信息和本地结算方式。</td></tr>
+            <tr><td>HIS 本地结算闭环</td><td>医保插件返回结果、HIS 住院费用数据</td><td>public.pt_balance、public.pt_balance_detail</td><td>无</td><td>医保正式结算成功后，HIS 写本地结算主表和结算明细表，完成住院收费闭环。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <div class="icon">!</div>
+        <div><strong>住院结算验证重点</strong><p>住院结算联调时，先确认入院登记后有 <code>ins_visit</code>；预结算后确认 <code>ins_fee_detail</code> 和 <code>ins_visit</code> 已写入中心返回信息；正式结算后确认 <code>ins_balance / ins_balance_info</code>，HIS 本地结算后确认 <code>public.pt_balance / public.pt_balance_detail</code>。</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="reverse-chapter">
+      <div class="section-head">
+        <div>
+          <h2>第三章：住院反流程</h2>
+          <p>住院反流程要按“登记”和“结算”拆开看：撤销入院/出院处理的是医保就诊上下文，撤销明细/结算作废处理的是费用上传和已确认结算。</p>
+        </div>
+        <span class="pill">主链路：1204 / 1210 / 1212</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+flowchart TB
+    START[HIS 发起住院反流程] --> TYPE{反流程类型}
+
+    TYPE -->|撤销入院登记| IN_DEL[1204 HospitalCancelInsure<br/>ComeInDelSwap<br/>读取 ins_visit]
+    IN_DEL --> IN_ROUTE{医保通道}
+    IN_ROUTE -->|国家医保| IN_N[2404 入院撤销]
+    IN_ROUTE -->|上海五期| IN_F[SJ21 登记撤销<br/>撤销类别=入院撤销]
+
+    TYPE -->|撤销出院登记| OUT_DEL[1210 HospitalOutCancel<br/>LeaveDelSwap<br/>读取 ins_visit]
+    OUT_DEL --> OUT_ROUTE{医保通道}
+    OUT_ROUTE -->|国家医保| OUT_N[2405 出院撤销<br/>再回写本地出院状态]
+    OUT_ROUTE -->|上海五期| OUT_F[回写本地出院撤销状态<br/>医保端登记撤销走 SJ21 工具]
+
+    TYPE -->|预结算重算 / 明细撤销| FEE_DEL[1208 HospitalDetailCancel<br/>DetailUploadDel<br/>定位原明细上传流水]
+    FEE_DEL --> FEE_ROUTE{医保通道}
+    FEE_ROUTE -->|国家医保| FEE_N[2302 住院费用明细撤销]
+    FEE_ROUTE -->|上海五期| FEE_F[SN02 明细账单撤销]
+    FEE_N --> RE_PRE[重新 1219/1211<br/>WipeoffMoney<br/>费用上传和预结算]
+    FEE_F --> RE_PRE
+
+    TYPE -->|住院退费 / 结算作废| SET_DEL[1212 HospitalSettleBack<br/>SettleDelSwap<br/>读取 ins_balance]
+    SET_DEL --> SET_ROUTE{医保通道}
+    SET_ROUTE -->|国家医保| SET_N[2305 住院结算撤销]
+    SET_ROUTE -->|上海五期| SET_F[SK01 交易退款]
+
+    IN_N --> LOCAL[HIS 回写住院状态 / 退费状态<br/>必要时冲销 public.pt_balance / public.pt_balance_detail]
+    IN_F --> LOCAL
+    OUT_N --> LOCAL
+    OUT_F --> LOCAL
+    RE_PRE --> LOCAL
+    SET_N --> NEG[SaveRefondInfo<br/>写医保冲负结算记录]
+    SET_F --> NEG
+    NEG --> LOCAL
+
+    style START fill:#3498db,color:#fff
+    style IN_DEL fill:#fdecea,stroke:#c0392b
+    style OUT_DEL fill:#fdecea,stroke:#c0392b
+    style FEE_DEL fill:#fdecea,stroke:#c0392b
+    style SET_DEL fill:#fdecea,stroke:#c0392b
+    style RE_PRE fill:#f9e79f,stroke:#b9770e
+    style NEG fill:#f9e79f,stroke:#b9770e
+    style LOCAL fill:#d5f5e3,stroke:#27ae60
+</pre>
+      </div>
+      <div class="matrix-card">
+        <table>
+          <thead><tr><th>反流程</th><th>触发场景</th><th>读表</th><th>写表/回写</th><th>中心交易</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>撤销入院登记</td><td>医保入院登记已成功，但 HIS 需要取消本次住院医保登记。</td><td>insur.ins_visit、insur.ins_archive、public.inp_visit</td><td>回写医保就诊上下文撤销结果；HIS 入院状态由主系统处理。</td><td>总控 <code>1204</code>；国家 2404；五期 SJ21。</td><td>总控 <code>Business.HospitalCancelInsure</code> 调插件 <code>ComeInDelSwap</code>，撤销的是医保端登记关系，不是住院费用。</td></tr>
+            <tr><td>撤销出院登记</td><td>HIS 已做出院登记，之后需要回退出院状态或重新结算。</td><td>insur.ins_visit、public.inp_visit</td><td>更新 <code>ins_visit</code> 的本地出院撤销状态。</td><td>总控 <code>1210</code>；国家 2405；五期当前主要回写本地状态，医保端登记撤销可走 SJ21 工具。</td><td>总控 <code>Business.HospitalOutCancel</code> 调插件 <code>LeaveDelSwap</code>。国家费用明细撤销失败时常见提示是医保端已出院，需要先撤销出院再撤销明细。</td></tr>
+            <tr><td>费用明细撤销 / 预结算重算</td><td>住院预结算后发现费用或医嘱变更，需要重新上传费用并重新试算。</td><td>insur.ins_fee_detail、insur.ins_visit、public.inp_fee_detail、public.inp_order</td><td>更新或清空费用明细医保上传信息；重新预结算时再写 <code>ins_fee_detail / ins_visit</code>。</td><td>总控 <code>1208</code>；国家 2302；五期 SN02。</td><td>总控明细撤销入口对应插件 <code>DetailUploadDel</code>。五期预结算前会先尝试撤销旧明细账单，再重新提交 SN01。</td></tr>
+            <tr><td>住院退费 / 结算作废</td><td>住院正式结算已确认，需要退费或作废本次医保结算。</td><td>insur.ins_balance、insur.ins_visit、insur.ins_fee_detail、public.pt_balance</td><td>insur.ins_balance 冲负记录；HIS 冲销 <code>public.pt_balance / public.pt_balance_detail</code> 并返回退费窗口展示。</td><td>总控 <code>1212</code>；国家 2305；五期 SK01。</td><td>总控 <code>Business.HospitalSettleBack</code> 调插件 <code>SettleDelSwap</code>，国家按结算 ID 撤销，五期按中心流水号退款。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <div class="icon">!</div>
+        <div><strong>住院反流程验证重点</strong><p>不要把撤销登记和结算退费混成一条线。登记类反流程重点看 <code>ins_visit</code>；费用和结算类反流程重点看 <code>ins_fee_detail</code>、<code>ins_balance</code>，以及 HIS 侧 <code>public.pt_balance / public.pt_balance_detail</code> 的退费状态。</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2>住院核心表矩阵</h2>
+          <p>用于快速判断“某张表为什么要有数据”。</p>
+        </div>
+      </div>
+      <div class="matrix-card">
+        <table>
+          <thead><tr><th>表名</th><th>阶段</th><th>读/写</th><th>业务目的</th></tr></thead>
+          <tbody>
+            <tr><td>insur.ins_archive</td><td>登记、结算</td><td>写后读</td><td>医保个人档案权威缓存，入院登记和正式结算都需要读取。</td></tr>
+            <tr><td>insur.ins_archive_vs</td><td>登记、结算</td><td>写后读</td><td>建立 HIS 患者与医保卡/证件档案的绑定关系。</td></tr>
+            <tr><td>public.inp_visit</td><td>登记、预结算</td><td>HIS 写，插件读</td><td>住院号、入院时间、出院时间、床位、科室等住院业务上下文。</td></tr>
+            <tr><td>public.inp_fee / public.inp_fee_detail</td><td>预结算</td><td>HIS 写，插件读</td><td>住院费用主单和明细，是住院费用上传的基础。</td></tr>
+            <tr><td>public.inp_order</td><td>预结算</td><td>HIS 写，插件读</td><td>住院医嘱来源，用于费用项目、开单医生等信息聚合。</td></tr>
+            <tr><td>public.pt_diagnosis</td><td>登记、结算</td><td>HIS 写，插件读</td><td>入院诊断和出院诊断，登记和结算前都会校验诊断对照。</td></tr>
+            <tr><td>insur.ins_item_vs / insur.ins_item</td><td>打标、预结算</td><td>读</td><td>本地收费项目到医保目录的映射和限制规则。</td></tr>
+            <tr><td>insur.ins_visit</td><td>登记、预结算、正式结算、登记反流程</td><td>写后读/更新</td><td>连接住院登记、预结算、正式结算的核心过程表；撤销入院、撤销出院时用于定位医保就诊并回写状态。</td></tr>
+            <tr><td>insur.ins_fee_detail</td><td>预结算、明细撤销</td><td>读/写</td><td>住院费用医保明细状态与医保上传返回信息；重算费用时用于撤销医保端明细。</td></tr>
+            <tr><td>insur.ins_balance</td><td>正式结算、结算反流程</td><td>写后读/冲负</td><td>医保住院结算主记录；退费或作废时按原结算记录定位中心流水并保存冲负记录。</td></tr>
+            <tr><td>insur.ins_balance_info</td><td>正式结算、结算反流程</td><td>写</td><td>医保结算方式拆分金额；退费时返回账户、现金、基金等退回拆分。</td></tr>
+            <tr><td>public.pt_balance</td><td>HIS 住院结算闭环、退费</td><td>HIS 写/冲销</td><td>HIS 本地结算主表；医保插件返回结算方式后，HIS 用它承接住院本地收款和退费闭环。</td></tr>
+            <tr><td>public.pt_balance_detail</td><td>HIS 住院结算闭环、退费</td><td>HIS 写/冲销</td><td>HIS 本地结算明细表；记录住院本地支付和结算明细，是出院结算最终落账的一部分。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <div class="icon">!</div>
+        <div><strong>验证重点</strong><p>住院全链路联调时，不能只看 mock 返回成功。至少要确认：医保入院登记后有 <code>insur.ins_visit</code>（含国家 <code>mdtrt_id</code> 或五期登记流水号 + 就诊单元号）；预结算后 <code>insur.ins_fee_detail</code> 和 <code>insur.ins_visit</code> 已写入中心返回信息；正式结算后有 <code>insur.ins_balance</code> 和 <code>insur.ins_balance_info</code>；HIS 收款后有 <code>public.pt_balance</code> 和 <code>public.pt_balance_detail</code>。反流程则需在 <code>insur.ins_visit</code>（撤销入院/出院）、<code>insur.ins_fee_detail</code>（明细撤销 / 重算）、<code>insur.ins_balance</code> 冲负记录上分别确认。</p></div>
+      </div>
+    </section>
+
+    <p class="footer">作者：Keiskei · 文件用途：上海医保住院登记与住院结算本地闭环联调说明</p>
+  </main>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      sequence: { mirrorActors: false, messageAlign: 'left' },
+      flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+    });
+  </script>
+</body>
+</html>

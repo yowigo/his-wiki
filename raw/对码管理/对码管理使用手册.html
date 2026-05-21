@@ -1,0 +1,1198 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Keiskei">
+  <title>对码管理教学页</title>
+  <style>
+    :root {
+      --ink: #18212f;
+      --muted: #647083;
+      --line: #d9e1ea;
+      --paper: #fbfcfe;
+      --panel: #ffffff;
+      --teal: #087f8c;
+      --teal-soft: #e3f5f6;
+      --blue: #2458a6;
+      --blue-soft: #eaf1fb;
+      --amber: #b45b00;
+      --amber-soft: #fff1d8;
+      --red: #b42318;
+      --red-soft: #fff0ee;
+      --green: #28704f;
+      --green-soft: #e7f5ed;
+      --shadow: 0 18px 45px rgba(24, 33, 47, .10);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+      line-height: 1.72;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 56px;
+      padding: 0 28px;
+      background: rgba(251, 252, 254, .96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-weight: 700;
+    }
+
+    .brand-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      background: var(--teal);
+      color: #fff;
+      font-size: 15px;
+      flex: 0 0 auto;
+    }
+
+    .brand span:last-child {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .progress-track {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 3px;
+      background: transparent;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: var(--teal);
+    }
+
+    .page {
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+      gap: 0;
+      min-height: calc(100vh - 56px);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 56px;
+      align-self: start;
+      height: calc(100vh - 56px);
+      padding: 28px 22px;
+      border-right: 1px solid var(--line);
+      background: #f5f8fb;
+      overflow: auto;
+    }
+
+    .sidebar-title {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .toc {
+      display: grid;
+      gap: 4px;
+    }
+
+    .toc a {
+      display: block;
+      border-radius: 7px;
+      color: #415065;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .toc-main {
+      padding: 9px 10px;
+      font-weight: 700;
+    }
+
+    .toc-sub {
+      padding: 7px 10px 7px 22px;
+    }
+
+    .toc a:hover,
+    .toc a.active {
+      background: #fff;
+      color: var(--teal);
+      box-shadow: 0 1px 0 rgba(24, 33, 47, .05);
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    .hero {
+      padding: 42px clamp(20px, 5vw, 72px) 30px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(260px, .75fr);
+      gap: 34px;
+      align-items: end;
+      max-width: none;
+      margin: 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 760px;
+      font-size: clamp(34px, 4.2vw, 58px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 760px;
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      min-height: 92px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #f8fbfd;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .lesson-strip {
+      padding: 28px clamp(20px, 5vw, 72px);
+      background: #eef5f6;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .lesson-inner {
+      max-width: none;
+      margin: 0;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 118px;
+      padding: 16px 14px;
+      border: 1px solid #c9dcdf;
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .flow-step strong {
+      display: block;
+      font-size: 15px;
+    }
+
+    .flow-step span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .step-no {
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      margin-bottom: 10px;
+      border-radius: 50%;
+      background: #72e6f3;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .content-shell {
+      max-width: none;
+      margin: 0;
+      padding: 34px clamp(20px, 3vw, 52px) 64px;
+    }
+
+    .teacher-note {
+      margin: 0 0 28px;
+      padding: 18px 20px;
+      border-left: 5px solid var(--amber);
+      border-radius: var(--radius);
+      background: var(--amber-soft);
+    }
+
+    .teacher-note strong {
+      color: var(--amber);
+    }
+
+    article {
+      padding: 0;
+    }
+
+    article h1,
+    article h2,
+    article h3,
+    article h4 {
+      scroll-margin-top: 76px;
+      letter-spacing: 0;
+    }
+
+    article h1 {
+      margin: 0 0 18px;
+      font-size: 34px;
+      line-height: 1.18;
+    }
+
+    article h2 {
+      margin: 44px 0 14px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+      font-size: 28px;
+      line-height: 1.2;
+    }
+
+    article h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 30px 0 12px;
+      padding: 13px 15px;
+      border-left: 5px solid var(--teal);
+      border-radius: var(--radius);
+      background: var(--teal-soft);
+      font-size: 20px;
+      line-height: 1.35;
+    }
+
+    article h4 {
+      margin: 22px 0 10px;
+      font-size: 17px;
+    }
+
+    article p {
+      margin: 12px 0;
+    }
+
+    article strong {
+      color: #111827;
+    }
+
+    article code {
+      padding: 2px 5px;
+      border: 1px solid #d8dee8;
+      border-radius: 5px;
+      background: #f3f6fa;
+      color: #15396b;
+      font-family: Consolas, "Microsoft YaHei", monospace;
+      font-size: .92em;
+    }
+
+    article ul,
+    article ol {
+      margin: 12px 0 16px;
+      padding-left: 28px;
+    }
+
+    article li {
+      margin: 6px 0;
+    }
+
+    hr {
+      height: 1px;
+      margin: 34px 0;
+      border: 0;
+      background: var(--line);
+    }
+
+    blockquote {
+      margin: 16px 0;
+      padding: 15px 18px;
+      border-left: 5px solid var(--amber);
+      border-radius: var(--radius);
+      background: var(--amber-soft);
+      color: #4f3b16;
+    }
+
+    .table-wrap {
+      width: 100%;
+      margin: 16px 0 24px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: 0 1px 0 rgba(24, 33, 47, .03);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 620px;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--blue-soft);
+      color: #173a70;
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .code-panel {
+      margin: 16px 0 24px;
+      border: 1px solid #ced7e3;
+      border-radius: var(--radius);
+      background: #101827;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .code-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 40px;
+      padding: 0 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, .10);
+      color: #b9c5d6;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .copy-code {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, .08);
+      color: #f7fafc;
+      cursor: pointer;
+      font: inherit;
+      padding: 5px 10px;
+    }
+
+    .copy-code:hover {
+      background: rgba(255, 255, 255, .15);
+    }
+
+    pre {
+      margin: 0;
+      padding: 16px;
+      overflow: auto;
+      color: #eef5ff;
+      font-family: Consolas, "Microsoft YaHei", monospace;
+      font-size: 14px;
+      line-height: 1.58;
+    }
+
+    pre code {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    .footer {
+      padding: 24px clamp(20px, 5vw, 72px) 40px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      background: #fff;
+      font-size: 13px;
+    }
+
+    .footer-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .print-btn {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+      padding: 7px 11px;
+    }
+
+    @media (max-width: 960px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .toc {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .flow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .topbar {
+        padding: 0 14px;
+      }
+
+      .topbar .print-btn {
+        display: none;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .toc {
+        grid-template-columns: 1fr;
+      }
+
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      article h2 {
+        font-size: 24px;
+      }
+
+      article h3 {
+        font-size: 18px;
+        align-items: flex-start;
+      }
+
+      table {
+        min-width: 560px;
+      }
+    }
+
+    @media print {
+
+      .topbar,
+      .sidebar,
+      .copy-code,
+      .print-btn {
+        display: none !important;
+      }
+
+      .page {
+        display: block;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .hero,
+      .lesson-strip,
+      .content-shell,
+      .footer {
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .code-panel {
+        box-shadow: none;
+      }
+
+      article h2,
+      article h3 {
+        break-after: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="回到顶部"><span class="brand-mark">码</span><span>对码管理教学页</span></a>
+    <button class="print-btn" type="button" onclick="window.print()">打印 / 导出 PDF</button>
+    <div class="progress-track" aria-hidden="true">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </header>
+
+  <div class="page" id="top">
+    <aside class="sidebar" aria-label="页面目录">
+      <p class="sidebar-title">课程目录</p>
+      <nav class="toc" id="toc">
+        <a class="toc-main" href="#对码管理操作手册">对码管理操作手册</a>
+        <a class="toc-main" href="#界面概览">界面概览</a>
+        <a class="toc-main" href="#完整操作步骤">完整操作步骤</a>
+        <a class="toc-sub" href="#sql-必须遵守的规则">🚨SQL 必须遵守的规则</a>
+        <a class="toc-sub" href="#第1步新增分类">第1步：新增分类</a>
+        <a class="toc-sub" href="#第2步编辑对码配置数据源和-sql">第2步：编辑对码（配置数据源和 SQL）</a>
+        <a class="toc-sub" href="#第3步自动对码">第3步：自动对码</a>
+        <a class="toc-sub" href="#第4步复核手动对码">第4步：复核、手动对码</a>
+        <a class="toc-sub" href="#第5步一键同步">第5步：一键同步</a>
+        <a class="toc-main" href="#常见报错及解决">常见报错及解决</a>
+        <a class="toc-main" href="#涉及的数据表">涉及的数据表</a>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="hero">
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow">教学版操作手册 · HIS 5.0</p>
+            <h1>对码管理操作手册</h1>
+            <p>把原始说明改成课堂式路径：先看入口和界面，再按 5 个步骤完成分类、SQL 配置、自动匹配、人工复核和首次同步。</p>
+          </div>
+          <div class="stats" aria-label="文档概览">
+            <div class="stat"><b>5</b><span>核心操作步骤</span></div>
+            <div class="stat"><b>7</b><span>自动对码匹配项</span></div>
+            <div class="stat"><b>10</b><span>说明表格</span></div>
+            <div class="stat"><b>4</b><span>关键模块</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lesson-strip" aria-label="学习路径">
+        <div class="lesson-inner">
+          <strong>学习路径</strong>
+          <div class="flow">
+            <div class="flow-step"><span class="step-no">1</span><strong>新增分类</strong><span>先建立左侧树节点，确定这批对码数据归属。</span></div>
+            <div class="flow-step"><span class="step-no">2</span><strong>配置 SQL</strong><span>在编辑对码里填写 HIS 侧和标准侧数据抽取 SQL。</span></div>
+            <div class="flow-step"><span class="step-no">3</span><strong>自动对码</strong><span>选择编号、名称、附加信息或扩展字段作为匹配条件。</span></div>
+            <div class="flow-step"><span class="step-no">4</span><strong>手动复核</strong><span>处理未匹配和错配数据，必要时清空或恢复单条对照。</span></div>
+            <div class="flow-step"><span class="step-no">5</span><strong>一键同步</strong><span>确认无误后，将首次对码结果写入目标 HIS 库。</span></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="content-shell">
+        <div class="teacher-note"><strong>重点：</strong>SQL 列别名必须严格匹配系统约定，自动对码只处理未对码数据，一键同步只用于首次写入目标库。</div>
+        <article class="lesson-body">
+          <h1 id="对码管理操作手册">对码管理操作手册</h1>
+          <p><strong>入口</strong>: 左侧菜单 → 医保支持系统 → 对码管理</p>
+
+          <h2 id="界面概览">界面概览</h2>
+          <p>左侧是分类树，右侧是对码列表。</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>按钮</th>
+                  <th>作用</th>
+                  <th>什么时候用</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>新增分类</td>
+                  <td>建一个分类文件夹</td>
+                  <td>第一次用，先建分类</td>
+                </tr>
+                <tr>
+                  <td>编辑分类</td>
+                  <td>改分类名称</td>
+                  <td>名称写错了</td>
+                </tr>
+                <tr>
+                  <td>删除分类</td>
+                  <td>删掉分类</td>
+                  <td>分类不用了（下面有对码数据时删不掉）</td>
+                </tr>
+                <tr>
+                  <td>编辑对码</td>
+                  <td>配置 SQL 和数据源</td>
+                  <td>建完分类后，告诉系统从哪里取数据</td>
+                </tr>
+                <tr>
+                  <td>自动对码</td>
+                  <td>一键匹配 HIS 和标准库</td>
+                  <td>配好 SQL 后，执行自动匹配</td>
+                </tr>
+                <tr>
+                  <td>一键同步</td>
+                  <td>把对码结果写入目标库</td>
+                  <td>对码确认无误后</td>
+                </tr>
+                <tr>
+                  <td>导出对码设置</td>
+                  <td>导出配置 SQL 脚本</td>
+                  <td>迁移到其他环境</td>
+                </tr>
+                <tr>
+                  <td>导出对码结果</td>
+                  <td>导出对码结果 SQL 脚本</td>
+                  <td>迁移对码数据到其他环境</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>对码列表中每行操作按钮：</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>按钮</th>
+                  <th>作用</th>
+                  <th>适用场景</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>清空对码</td>
+                  <td>清除<strong>这一条</strong>的对照关系，回到未对码状态</td>
+                  <td>这条匹配错了，想清掉重新对</td>
+                </tr>
+                <tr>
+                  <td>恢复对码</td>
+                  <td>恢复<strong>这一条</strong>被清空的对照关系</td>
+                  <td>清空后反悔，恢复回来</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>对码列表右上角两个辅助 Tab：</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tab</th>
+                  <th>功能</th>
+                  <th>对应表</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>分类权限</td>
+                  <td>按角色控制谁能查看/操作该分类下的对码数据</td>
+                  <td><code>match_class_role</code></td>
+                </tr>
+                <tr>
+                  <td>操作日志</td>
+                  <td>查看所有操作的审计记录</td>
+                  <td><code>match_operate_log</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2 id="完整操作步骤">完整操作步骤</h2>
+          <h3 id="sql-必须遵守的规则">🚨SQL 必须遵守的规则</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>规则</th>
+                  <th>原因</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>别名必须是 <code>his_code</code>, <code>his_name</code>, <code>his_info</code></td>
+                  <td>系统生成外层 SQL 时硬编码了这三个列名，写 <code>code</code>/<code>name</code>/<code>info</code> 会报错
+                    <code>column views_data.his_code does not exist</code></td>
+                </tr>
+                <tr>
+                  <td>别名必须是 <code>standard_code</code>, <code>standard_name</code>, <code>standard_info</code></td>
+                  <td>同上，标准侧硬编码了这三个</td>
+                </tr>
+                <tr>
+                  <td>JSON 字段后面加 <code>::text</code> 转类型</td>
+                  <td><code>match_result</code> 表的 <code>his_info</code>/<code>standard_info</code> 是
+                    varchar，<code>json_build_object</code> 返回 json 类型，不转会报
+                    <code>invalid input syntax for type json</code></td>
+                </tr>
+                <tr>
+                  <td>机构过滤用 <code>:[org_id]</code></td>
+                  <td>系统自动替换为当前登录用户的机构 ID</td>
+                </tr>
+                <tr>
+                  <td>必须过滤 <code>status = 1</code></td>
+                  <td>避免已停用的数据参与对码</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>填写完成点确定。如果报错，对照上面的规则逐条排查。</p>
+          <h3 id="第1步新增分类">第1步：新增分类</h3>
+          <p>点&quot;新增分类&quot;，弹窗里两个输入框：</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>输入框</th>
+                  <th>填什么</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>分类名称</td>
+                  <td><strong>输入一个已有的分类名</strong>，该分类就成为父节点</td>
+                </tr>
+                <tr>
+                  <td>分类子项</td>
+                  <td><strong>你要新建的分类名</strong>（子节点）</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>举例</strong>：</p>
+          <ul>
+            <li>想建根节点 <code>药事平台药品对码</code>：上面填 <code>药事平台药品对码</code>，下面<strong>留空</strong>。系统自动创建这个分类，挂在根下</li>
+            <li>想在已有分类 <code>医保</code> 下建子分类 <code>药品</code>：上面填 <code>药品</code>，下面填 <code>医保</code>。系统在 <code>医保</code>
+              节点下创建 <code>药品</code></li>
+          </ul>
+          <p><strong>后台逻辑</strong>：如果&quot;父分类&quot;填的名字还不存在，系统会自动先创建父节点、再创建子节点。如果两者都已经存在且已是父子关系，提示&quot;已存在该分类&quot;。
+          </p>
+          <h3 id="第2步编辑对码配置数据源和-sql">第2步：编辑对码（配置数据源和 SQL）</h3>
+          <p>选中刚建的分类 → 点&quot;编辑对码&quot;→ 弹出配置弹窗。</p>
+          <p><strong>弹窗字段</strong>：</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>字段</th>
+                  <th>填什么</th>
+                  <th>本次示例（仅供参考）</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>对码名称</td>
+                  <td>自己起名</td>
+                  <td><code>药事平台药品对码</code></td>
+                </tr>
+                <tr>
+                  <td>目标数据源</td>
+                  <td>下拉选 HIS 库</td>
+                  <td><code>药品数据源</code>（drug 域）</td>
+                </tr>
+                <tr>
+                  <td>三方数据源</td>
+                  <td>下拉选标准库</td>
+                  <td><code>费用数据源</code>（fee 域）</td>
+                </tr>
+                <tr>
+                  <td>HIS SQL</td>
+                  <td>HIS 侧数据抽取 SQL</td>
+                  <td>见下方</td>
+                </tr>
+                <tr>
+                  <td>标准 SQL</td>
+                  <td>标准侧数据抽取 SQL</td>
+                  <td>见下方</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ol>
+            <li><strong>HIS SQL</strong></li>
+          </ol>
+          <div class="code-panel" data-language="sql">
+            <div class="code-bar"><span>SQL</span><button type="button" class="copy-code">复制</button></div>
+            <pre><code>SELECT
+    code   AS his_code,
+    name   AS his_name,
+    json_build_object(
+        &#x27;strength&#x27;,     strength,
+        &#x27;brand_name&#x27;,   brand_name,
+        &#x27;manufacturer&#x27;, manufacturer,
+        &#x27;fee_type&#x27;,     fee_type,
+        &#x27;standard_code&#x27;, standard_code
+    )::text AS his_info
+FROM qw_base.b_drug
+WHERE status = 1  AND org_id = :[org_id]</code></pre>
+          </div>
+          <ol>
+            <li><strong>标准 SQL</strong></li>
+          </ol>
+          <div class="code-panel" data-language="sql">
+            <div class="code-bar"><span>SQL</span><button type="button" class="copy-code">复制</button></div>
+            <pre><code>SELECT
+    standard_code,
+    standard_name,
+    json_build_object(
+        &#x27;spec_pack&#x27;,    spec_pack,
+        &#x27;pack_unit&#x27;,    pack_unit,
+        &#x27;manufacturer&#x27;, manufacturer,
+        &#x27;fee_type&#x27;,     fee_type,
+        &#x27;pay_ratio&#x27;,    pay_ratio,
+        &#x27;drug_type&#x27;,    drug_type,
+        &#x27;catalog_code&#x27;, catalog_code,
+        &#x27;limit_desc&#x27;,   limit_desc
+    )::text AS standard_info
+FROM insur.b_drug_standard
+WHERE status = 1  AND org_id = :[org_id]</code></pre>
+          </div>
+          <h3 id="第3步自动对码">第3步：自动对码</h3>
+          <p>点&quot;自动对码&quot;，弹窗显示 7 个匹配策略复选框：</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>复选框</th>
+                  <th>匹配依据</th>
+                  <th>对应列</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>编号</td>
+                  <td>HIS 编码 = 标准编码</td>
+                  <td><code>his_code ↔ standard_code</code></td>
+                </tr>
+                <tr>
+                  <td>名称</td>
+                  <td>HIS 名称 = 标准名称</td>
+                  <td><code>his_name ↔ standard_name</code></td>
+                </tr>
+                <tr>
+                  <td>附加信息</td>
+                  <td>HIS 附加信息 = 标准附加信息</td>
+                  <td><code>his_info ↔ standard_info</code></td>
+                </tr>
+                <tr>
+                  <td>扩展字段1 ~ 4</td>
+                  <td>对应扩展字段相等</td>
+                  <td><code>standard_extfield1~4</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>规则</strong>：</p>
+          <ul>
+            <li>可多选，勾选的字段<strong>全部相等</strong>才算匹配</li>
+            <li>只对<strong>未对码</strong>的数据执行，已对码的不受影响</li>
+            <li>至少勾选一项才能执行</li>
+          </ul>
+          <p><strong>典型用法</strong>：</p>
+          <ul>
+            <li>只勾&quot;编号&quot; → 编码相同即自动匹配（最常用）</li>
+            <li>勾&quot;编号&quot;+&quot;名称&quot; → 编码和名称都相同才算匹配（更严格）</li>
+            <li>勾&quot;编号&quot;+&quot;附加信息&quot; → 规格/厂家等附加信息也一致才匹配</li>
+          </ul>
+          <p><strong>扩展字段怎么用</strong>：</p>
+          <p>扩展字段的值来自 HIS SQL 和标准 SQL 中返回的 <code>standard_extfield1</code> ~ <code>standard_extfield4</code>
+            列。勾选后，系统对这些列做 AND 相等比较，用于精细化匹配。</p>
+          <p>例如在 HIS SQL 中加上：</p>
+          <div class="code-panel" data-language="sql">
+            <div class="code-bar"><span>SQL</span><button type="button" class="copy-code">复制</button></div>
+            <pre><code>SELECT
+    code         AS his_code,
+    name         AS his_name,
+    ...::text    AS his_info,
+    strength       AS standard_extfield1,   -- 规格
+    manufacturer   AS standard_extfield2    -- 厂家
+FROM qw_base.b_drug
+WHERE status = 1 AND org_id = :[org_id]</code></pre>
+          </div>
+          <p>标准 SQL 中对应加上：</p>
+          <div class="code-panel" data-language="sql">
+            <div class="code-bar"><span>SQL</span><button type="button" class="copy-code">复制</button></div>
+            <pre><code>SELECT
+    standard_code,
+    standard_name,
+    ...::text    AS standard_info,
+    spec_pack      AS standard_extfield1,   -- 规格包装
+    manufacturer   AS standard_extfield2    -- 厂家
+FROM insur.b_drug_standard
+WHERE status = 1 AND org_id = :[org_id]</code></pre>
+          </div>
+          <p>然后勾选&quot;扩展字段1&quot;+&quot;扩展字段2&quot; → 同编码+同规格+同厂家三个条件全部满足才算匹配。</p>
+          <blockquote>列名必须严格写 <code>standard_extfield1</code> ~ <code>standard_extfield4</code>，大小写敏感。不需要的字段不返回即可。
+          </blockquote>
+          <p>勾选后点确定，切换&quot;已对码&quot;Tab 查看结果。</p>
+          <h3 id="第4步复核手动对码">第4步：复核、手动对码</h3>
+          <p>自动对码后，切到&quot;未对码&quot;Tab 查看没匹配上的数据。需要手动逐条补充对照：</p>
+          <p><strong>操作</strong>：点该行的编辑按钮 → 弹出编辑弹窗 → 在&quot;三方名称&quot;输入框中填写标准名称进行检索 → 下拉列表出现匹配项后选择目标 → 保存。</p>
+          <blockquote>⚠️ <strong>必须先填三方名称</strong>，否则下拉列表无数据可选。</blockquote>
+          <p><strong>其他操作</strong>：</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>场景</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>匹配错了</td>
+                  <td>点编辑，改 <code>standard_code</code> 和 <code>standard_name</code>，保存</td>
+                </tr>
+                <tr>
+                  <td>不需要对码</td>
+                  <td>点删除</td>
+                </tr>
+                <tr>
+                  <td>清掉重来</td>
+                  <td>点清空对码</td>
+                </tr>
+                <tr>
+                  <td>清空后反悔</td>
+                  <td>点恢复对码</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h3 id="第5步一键同步">第5步：一键同步</h3>
+          <p>一键同步<strong>仅用于</strong>将 <code>match_result</code> 对码结果<strong>首次</strong>写入目标 HIS 库。</p>
+          <p>🚨 <strong>使用前必读</strong>：</p>
+          <ul>
+            <li>适用版本：V4.0.8.250227 及之后</li>
+            <li>仅执行一次：首次将对码结果写入目标库时使用</li>
+            <li><strong>不一致时</strong>：如果执行后发现与原有对码结果不一致，需手动删除目标库对应的 <code>match_result</code> 表数据，再重新执行</li>
+            <li>操作前仔细阅读弹窗提示，谨慎使用</li>
+          </ul>
+          <hr>
+          <h2 id="常见报错及解决">常见报错及解决</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>报错信息</th>
+                  <th>原因</th>
+                  <th>解决</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>column views_data.his_code does not exist</code></td>
+                  <td>HIS SQL 的列别名没写成 <code>his_code</code>/<code>his_name</code>/<code>his_info</code></td>
+                  <td>改成 <code>AS his_code, AS his_name, AS his_info</code></td>
+                </tr>
+                <tr>
+                  <td><code>invalid input syntax for type json</code></td>
+                  <td><code>json_build_object</code> 返回 json 类型，和 varchar 列比较时报错</td>
+                  <td>后面加 <code>::text</code>：<code>json_build_object(...)::text AS his_info</code></td>
+                </tr>
+                <tr>
+                  <td><code>目标库只能是产品数据库</code></td>
+                  <td>目标数据源选的库 dbtype 不是 2（PostgreSQL）</td>
+                  <td>确认选的 HIS 数据源是 PG 库</td>
+                </tr>
+                <tr>
+                  <td><code>已存在该分类</code></td>
+                  <td>同级下已存在同名分类</td>
+                  <td>换一个分类名</td>
+                </tr>
+                <tr>
+                  <td><code>该分类已存在对码数据，无法删除</code></td>
+                  <td>分类下有 match_result 数据</td>
+                  <td>先点&quot;清空对码&quot;，再删分类</td>
+                </tr>
+                <tr>
+                  <td><code>数据源不存在</code></td>
+                  <td>下拉选的数据源在 <code>ProductDataSource</code> 表里没有配置或实例信息不全</td>
+                  <td>去产品数据源管理页面检查配置</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <hr>
+          <h2 id="涉及的数据表">涉及的数据表</h2>
+          <p>全部位于 <code>public</code> schema，均写入 updb 域。</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>表名</th>
+                  <th>用途</th>
+                  <th>对应界面区域</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>match_class</code></td>
+                  <td>对码分类，树形结构</td>
+                  <td>左侧分类树</td>
+                </tr>
+                <tr>
+                  <td><code>match_class_role</code></td>
+                  <td>分类权限，按角色控制</td>
+                  <td>分类权限 Tab</td>
+                </tr>
+                <tr>
+                  <td><code>match_db</code></td>
+                  <td>对码数据表配置（HIS SQL + 标准 SQL + 数据源）</td>
+                  <td>编辑对码弹窗</td>
+                </tr>
+                <tr>
+                  <td><code>match_result</code></td>
+                  <td>对码结果，每条一条对照关系</td>
+                  <td>右侧对码列表</td>
+                </tr>
+                <tr>
+                  <td><code>match_loge</code></td>
+                  <td>对码日志</td>
+                  <td>—</td>
+                </tr>
+                <tr>
+                  <td><code>match_operate_log</code></td>
+                  <td>操作日志</td>
+                  <td>操作日志 Tab</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+
+      <footer class="footer">
+        <div class="footer-inner">
+          <span>来源：对码管理使用手册.md · 生成时间：2026-05-14 11:57</span>
+          <span>作者：Keiskei</span>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    const progressBar = document.getElementById('progressBar');
+    const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+    const sections = tocLinks.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+
+    function updateProgress() {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+      progressBar.style.width = pct.toFixed(2) + '%';
+
+      let active = sections[0];
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top <= 90) active = section;
+      }
+      tocLinks.forEach(link => link.classList.toggle('active', active && link.getAttribute('href') === '#' + active.id));
+    }
+
+    document.querySelectorAll('.copy-code').forEach(button => {
+      button.addEventListener('click', async () => {
+        const panel = button.closest('.code-panel');
+        const code = panel ? panel.querySelector('pre').innerText : '';
+        try {
+          await navigator.clipboard.writeText(code);
+          button.textContent = '已复制';
+          setTimeout(() => button.textContent = '复制', 1200);
+        } catch (error) {
+          button.textContent = '复制失败';
+          setTimeout(() => button.textContent = '复制', 1200);
+        }
+      });
+    });
+
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    updateProgress();
+  </script>
+</body>
+
+</html>

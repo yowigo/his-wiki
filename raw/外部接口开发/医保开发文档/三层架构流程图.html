@@ -1,0 +1,1120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="author" content="Keiskei" />
+  <title>HIS 医保三层架构流程图</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --ink: #17201c;
+      --muted: #5f6f68;
+      --paper: #fbf7ef;
+      --panel: rgba(255,255,255,.84);
+      --line: rgba(23,32,28,.14);
+      --green: #006b4f;
+      --green-2: #0b8a68;
+      --amber: #c9781a;
+      --blue: #1d5d86;
+      --red: #b83b3b;
+      --shadow: 0 20px 55px rgba(38, 52, 45, .16);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "HarmonyOS Sans SC", "Microsoft YaHei UI", "Noto Sans CJK SC", sans-serif;
+      background:
+        radial-gradient(circle at 8% 9%, rgba(0,107,79,.16), transparent 29rem),
+        radial-gradient(circle at 86% 2%, rgba(201,120,26,.18), transparent 26rem),
+        linear-gradient(135deg, #fffaf0 0%, #eef7f1 48%, #f7efe0 100%);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .28;
+      background-image:
+        linear-gradient(rgba(23,32,28,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,32,28,.06) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(to bottom, black, transparent 78%);
+    }
+
+    .page {
+      width: 95%;
+      margin: 0 auto;
+      padding: 34px 0 70px;
+      position: relative;
+    }
+
+    .doc-nav {
+      position: sticky;
+      top: 12px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding: 13px 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,.72);
+      box-shadow: 0 10px 30px rgba(38, 52, 45, .10);
+      backdrop-filter: blur(12px);
+    }
+
+    .doc-nav span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .doc-nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #fff;
+      background: linear-gradient(135deg, var(--green), var(--green-2));
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .doc-nav a:hover { filter: brightness(.94); }
+
+    .doc-nav .nav-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .doc-nav .nav-actions a:nth-child(1) {
+      background: linear-gradient(135deg, var(--blue), #154360);
+    }
+
+    .doc-nav .nav-actions a:nth-child(2) {
+      background: linear-gradient(135deg, var(--amber), #935116);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 26px;
+    }
+
+    .title-card,
+    .route-card,
+    .section {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,.65);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .title-card {
+      border-radius: 30px;
+      padding: 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .title-card::after {
+      content: "ARCHITECTURE\A OVERVIEW";
+      white-space: pre;
+      position: absolute;
+      right: 22px;
+      bottom: 18px;
+      color: rgba(0,107,79,.08);
+      font-size: clamp(42px, 6vw, 86px);
+      line-height: .82;
+      font-weight: 900;
+      letter-spacing: -4px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--green), var(--green-2));
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-family: "STZhongsong", "SimSun", serif;
+      font-size: clamp(34px, 5vw, 68px);
+      line-height: 1.02;
+      letter-spacing: -1.5px;
+    }
+
+    .subtitle {
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.8;
+      margin: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .route-card {
+      border-radius: 30px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 310px;
+    }
+
+    .route-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .route-title h2,
+    .section h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -.4px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.72);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .routes {
+      display: grid;
+      gap: 14px;
+    }
+
+    .route-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 13px;
+      align-items: center;
+      padding: 15px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.62);
+    }
+
+    .route-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 900;
+      font-size: 18px;
+      background: var(--green);
+    }
+
+    .route-mark.national { background: var(--blue); }
+    .route-mark.fifth { background: var(--green); }
+    .route-mark.hub { background: linear-gradient(135deg, var(--amber), #935116); }
+
+    .route-item strong { display: block; font-size: 16px; margin-bottom: 5px; }
+    .route-item span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+    code {
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      font-size: .92em;
+      padding: 2px 6px;
+      border-radius: 7px;
+      background: rgba(0,107,79,.09);
+      color: #045a43;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 18px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.74);
+    }
+
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); }
+    .dot.center { background: var(--red); }
+    .dot.star { background: var(--amber); }
+    .dot.local { background: var(--blue); }
+
+    .section {
+      border-radius: 28px;
+      padding: 26px;
+      margin: 24px 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .section-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .flow-chart {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px;
+      margin: 16px 0 18px;
+      background: rgba(255,255,255,.78);
+      overflow-x: auto;
+    }
+
+    .flow-chart pre { margin: 0; }
+
+    #chart-0-1 .mermaid {
+      width: 100%;
+    }
+
+    #chart-0-1 .mermaid svg {
+      display: block;
+      width: 100% !important;
+      max-width: none !important;
+      height: auto;
+    }
+
+    .chapter-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .chapter-tabs.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+    .chapter-tabs a {
+      display: block;
+      min-height: 68px;
+      padding: 13px 15px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,.72);
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 900;
+    }
+
+    .chapter-tabs span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    .callout {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(201,120,26,.25);
+      background: linear-gradient(135deg, rgba(255,248,231,.88), rgba(255,255,255,.62));
+      margin-top: 18px;
+    }
+
+    .callout.info {
+      border-color: rgba(29,93,134,.25);
+      background: linear-gradient(135deg, rgba(232,243,251,.88), rgba(255,255,255,.62));
+    }
+
+    .callout.info .icon { background: var(--blue); }
+
+    .callout .icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      background: var(--amber);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .callout strong { display: block; margin-bottom: 5px; }
+    .callout p { margin: 0; color: var(--muted); line-height: 1.7; }
+
+    .footer {
+      margin-top: 24px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .sub-heading {
+      margin: 8px 0 6px;
+      font-size: 18px;
+      letter-spacing: -.3px;
+    }
+
+    .sub-lead {
+      color: var(--muted);
+      margin: 0 0 14px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .matrix-card {
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 30px rgba(38, 52, 45, .08);
+      margin-top: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,.76);
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      padding: 15px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    th {
+      background: linear-gradient(135deg, rgba(0,107,79,.95), rgba(2,74,58,.95));
+      color: #fff;
+      font-weight: 900;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { font-weight: 900; color: #053f31; width: 150px; }
+
+    @media (max-width: 1100px) {
+      .hero { grid-template-columns: 1fr; }
+      .chapter-tabs.five { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      .page { width: min(100% - 24px, 1380px); padding-top: 18px; }
+      .title-card, .route-card, .section { padding: 20px; border-radius: 22px; }
+      .chapter-tabs, .chapter-tabs.five { grid-template-columns: 1fr; }
+      .section-head { align-items: flex-start; flex-direction: column; }
+      .doc-nav { align-items: stretch; flex-direction: column; }
+      th, td { padding: 12px; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      body::before { display: none; }
+      .title-card, .route-card, .section { box-shadow: none; background: #fff; }
+      .page { width: 100%; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="doc-nav" aria-label="教学文档导航">
+      <span><strong>教学路径：</strong>本页是三层架构总览，先理解 HIS、医保总控、医保插件三层关系；理解后再去看门诊和住院专题，每一步落到具体的表读写。</span>
+      <div class="nav-actions">
+        <a href="./门诊挂号流程-表读写关系.html">查看门诊流程</a>
+        <a href="./住院流程-表读写关系.html">查看住院流程</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <article class="title-card">
+        <span class="eyebrow">HIS x 医保 · 三层架构</span>
+        <h1>三层架构<br />流程图总览</h1>
+        <p class="subtitle">把 “HIS 客户端 → 医保总控 → 医保接口实现” 三层关系讲清楚：HIS 反射加载总控 DLL，总控按 <code>business_type</code> 路由分发，再动态加载具体地区的医保实现。本项目 <code>zlchs.SH.GJBYB.insure</code> 就是第三层的一个实例，向上对接 HIS 总控，向下分流到国家医保 CSB HTTP 通道与上海五期 SendRcv4 直连通道。</p>
+      </article>
+
+      <aside class="route-card">
+        <div>
+          <div class="route-title">
+            <h2>双通道路由</h2>
+            <span class="pill">入口：<code>ins_id</code></span>
+          </div>
+          <div class="routes">
+            <div class="route-item">
+              <div class="route-mark fifth">11</div>
+              <div>
+                <strong>上海医保五期</strong>
+                <span><code>SHWQBusinessHelper / SHYBHelper</code>，<code>SendRcv4.dll</code> P/Invoke 直连。</span>
+              </div>
+              <code>ROUTE-FIFTH</code>
+            </div>
+            <div class="route-item">
+              <div class="route-mark national">12</div>
+              <div>
+                <strong>国家医保</strong>
+                <span><code>BusinessHelper.YBBusiness</code>，CSB HTTP 通道，AOP 自动写 <code>insur.ins_log</code>。</span>
+              </div>
+              <code>ROUTE-NATIONAL</code>
+            </div>
+            <div class="route-item">
+              <div class="route-mark hub">1</div>
+              <div>
+                <strong>总线读卡分流</strong>
+                <span><code>Identify</code> 按 <code>accountattr</code> 自动落到 11 或 12。</span>
+              </div>
+              <code>ROUTE-HUB</code>
+            </div>
+          </div>
+        </div>
+        <div class="legend">
+          <span class="tag"><i class="dot center"></i>🔗 医保中心交互</span>
+          <span class="tag"><i class="dot star"></i>★ HIS5.0 新增</span>
+          <span class="tag"><i class="dot local"></i>本地数据库</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" id="overview">
+      <div class="section-head">
+        <div>
+          <h2>章节导航</h2>
+          <p>本页 10 张图按 “上海插件入口 → 三层职责 → 调用链路 → 动态加载 → 业务编排 → CA 签名” 分层组织，可以按需跳转。★ 标记为 HIS5.0 相较 HIS5.1 的新增/变化部分。</p>
+        </div>
+        <span class="pill">10 张图 · 5 个层次</span>
+      </div>
+      <div class="chapter-tabs five">
+        <a href="#chart-0">图 0 · 0A · 0-1 · 0-2<span>上海插件入口、总控编号映射、四条业务正反向流程对照、医保打标横切。</span></a>
+        <a href="#chart-1">图 1<span>三层职责与交互总览。</span></a>
+        <a href="#chart-2a">图 2A · 2B · 3 · 4<span>反射加载链路、业务编排闭环、各层类关系、动态 DLL 加载机制。</span></a>
+        <a href="#chart-5">图 5 · 6<span>Business 门诊结算编排、住院结算超时冲正机制。</span></a>
+        <a href="#chart-7">图 7 ★<span>HIS5.0 新增：CA 签名调用链路（字典缓存 + StartsWith 短路）。</span></a>
+      </div>
+    </section>
+
+    <section class="section" id="chart-0">
+      <div class="section-head">
+        <div>
+          <h2>图 0：上海医保插件业务入口总览</h2>
+          <p>本项目 <code>zlchs.SH.GJBYB.insure</code> 的总线结构。HIS 先把 <code>business_type</code> 交给医保总控，医保总控调用 <code>Business.*</code> 编排方法，再经 <code>InsureBusiness</code> 反射调用本插件 <code>Cls_SHGBYB</code> 的具体方法；插件内部再按 <code>ins_system.sno</code> 分流到国家医保 CSB HTTP 或上海五期 SendRcv4 直连。</p>
+        </div>
+        <span class="pill">总线：<code>Cls_SHGBYB</code></span>
+      </div>
+      <div class="callout info">
+        <div class="icon">i</div>
+        <div><strong>上海医保插件补充</strong><p>真实开发时不要只按方法名串交易，要同时看三层编号：HIS 入口的 <code>business_type</code>、总控的 <code>Business.*</code> 编排方法、插件的 <code>IInsureInterface</code> 方法。四条业务入口和反流程都按这个映射理解。</p></div>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+flowchart TB
+    HIS[HIS 客户端<br/>挂号 / 收费 / 入院 / 出院] --> CTRL[医保总控<br/>business_type 路由<br/>1101/1103/1106/1107<br/>1201/1202/1206/1211/1212/1219]
+    CTRL --> BUS[Cls_SHGBYB<br/>IInsureInterface 总线]
+    BUS --> ROUTE{读取 ins_system.sno}
+
+    ROUTE -->|12 国家医保| NATIONAL[BusinessHelper.YBBusiness<br/>CSB HTTP 通道]
+    ROUTE -->|11 上海五期| FIFTH[SHWQBusinessHelper / SHYBHelper<br/>SendRcv4 直连通道]
+    ROUTE -->|ins_id=1 总线| IDENTIFY[Identify 读卡<br/>按 accountattr 自动分流]
+    IDENTIFY --> ROUTE
+
+    CTRL --> OP_REG_CTRL[1106 门诊结算<br/>Business.ClincSettle<br/>handle_type=3 挂号费]
+    CTRL --> OP_SET_CTRL[1103 打标 / 1106 结算 / 1107 退费<br/>Business.ClincInsureItemCheck<br/>Business.ClincSettle / ClincSettleBack]
+    CTRL --> IP_REG_CTRL[1202 入院 / 1209 出院<br/>1204 撤销入院 / 1210 撤销出院]
+    CTRL --> IP_SET_CTRL[1206 打标 / 1219 预结算<br/>1211 结算 / 1212 退费]
+
+    OP_REG_CTRL --> OP_REG[门诊挂号<br/>ClinicPreSwap handle_type=3<br/>ClinicSwap handle_type=3]
+    OP_SET_CTRL --> OP_SET[门诊结算<br/>ItemMarking -> ClinicPreSwap<br/>ClinicSwap / ClinicDelSwap]
+    IP_REG_CTRL --> IP_REG[住院登记<br/>ComeInSwap -> LeaveSwap<br/>ComeInDelSwap / LeaveDelSwap]
+    IP_SET_CTRL --> IP_SET[住院结算<br/>ItemMarking -> WipeoffMoney<br/>SettleSwap / SettleDelSwap]
+
+    OP_REG --> OP_REG_TX[国家 2201A/2203/2206/2207<br/>五期 SH01/SH02]
+    OP_SET --> OP_SET_TX[国家 2204/2206/2207<br/>五期 SN01/SI11/SI12]
+    IP_REG --> IP_REG_TX[国家 2401，预结算阶段 2402<br/>五期 SJ11]
+    IP_SET --> IP_SET_TX[国家 2301/2303/2304<br/>五期 SN01/SI51/SI52]
+
+    OP_REG_TX --> LOCAL[(本地医保库 insur.*)]
+    OP_SET_TX --> LOCAL
+    IP_REG_TX --> LOCAL
+    IP_SET_TX --> LOCAL
+    HIS_DB[(HIS 业务库 public.* / qw_base.*)] --> BUS
+    OP_REG_TX --> HIS_BAL[(HIS 本地结算闭环<br/>public.pt_balance / public.pt_balance_detail)]
+    OP_SET_TX --> HIS_BAL
+    IP_SET_TX --> HIS_BAL
+
+    style HIS fill:#3498db,color:#fff
+    style CTRL fill:#c9781a,color:#fff
+    style BUS fill:#e67e22,color:#fff
+    style NATIONAL fill:#1f618d,color:#fff
+    style FIFTH fill:#117864,color:#fff
+    style IDENTIFY fill:#7d3c98,color:#fff
+    style LOCAL fill:#d5f5e3,stroke:#27ae60
+    style HIS_DB fill:#fdebd0,stroke:#e67e22
+    style HIS_BAL fill:#fcf3cf,stroke:#b7950b
+</pre>
+      </div>
+    </section>
+
+    <section class="section" id="control-map">
+      <div class="section-head">
+        <div>
+          <h2>图 0A：总控业务编号与插件方法对照</h2>
+          <p>医保总控框架已按 <code>business_type</code> 固定入口，新手排查时应先从编号定位总控 <code>Business.*</code> 编排，再看它实际调用的医保插件方法。</p>
+        </div>
+        <span class="pill">business_type → Business → 插件方法</span>
+      </div>
+      <div class="matrix-card">
+        <table>
+          <thead>
+            <tr><th>总控编号</th><th>HIS 业务入口</th><th>总控编排方法</th><th>医保插件方法</th><th>中心交易号</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1101</td><td>门诊选择保险</td><td><code>Business.ClincChoseInsure</code></td><td><code>Identify</code>、<code>SelfBalance</code></td><td>国家/五期读卡与余额类交易</td><td>建立医保档案并确定 <code>ins_id</code>，后续门诊挂号和门诊收费都依赖这里的分流结果。</td></tr>
+            <tr><td>1103</td><td>门诊医保项目打标</td><td><code>Business.ClincInsureItemCheck</code></td><td><code>ItemMarking</code></td><td>无</td><td>本地对码和限制规则判断，不是医保中心交易。</td></tr>
+            <tr><td>1104 / 1105</td><td>门诊费用明细上传 / 撤销</td><td><code>Business.ClincDetailUpload</code> / <code>Business.ClincDetailCancel</code></td><td><code>DetailUpload</code> / <code>DetailUploadDel</code></td><td>国家 2204/2205；五期 SN01/SN02</td><td>独立明细入口；在当前上海插件主链路中，费用上传也会被 <code>ClinicPreSwap</code> 编排进预结算流程。</td></tr>
+            <tr><td>1106</td><td>门诊结算；挂号费直接结算时也走此入口</td><td><code>Business.ClincSettle</code></td><td><code>ClinicPreSwap</code> → <code>ClinicSwap</code>；挂号费场景带 <code>handle_type=3</code></td><td>国家 2201A/2203/2206/2207 或 2204/2206/2207；五期 SH01/SH02 或 SN01/SI11/SI12</td><td>总控只有“门诊结算”大入口，是否是挂号费由业务参数和插件 <code>handle_type</code> 区分。</td></tr>
+            <tr><td>1107</td><td>门诊取消结算 / 退费 / 退号</td><td><code>Business.ClincSettleBack</code></td><td><code>ClinicDelSwap</code></td><td>国家 2208/2205，必要时 2202；五期 SK01，必要时 SN02</td><td>已经确认医保结算的门诊反流程先撤医保结算，再回到 HIS 退费和挂号状态。</td></tr>
+            <tr><td>1201</td><td>住院选择保险</td><td><code>Business.HospitalChoseInsure</code></td><td><code>Identify</code>、<code>SelfBalance</code></td><td>国家/五期读卡与余额类交易</td><td>建立住院后续登记、预结算和结算使用的医保人员上下文。</td></tr>
+            <tr><td>1202 / 1203 / 1204</td><td>入院登记 / 补登记 / 取消保险</td><td><code>Business.HospitalIn</code> / <code>HospitalSupplement</code> / <code>HospitalCancelInsure</code></td><td><code>ComeInSwap</code> / <code>ComeInDelSwap</code></td><td>国家 2401/2404；五期 SJ11/SJ21</td><td>处理医保端住院登记关系，和住院费用结算不是同一条反流程。</td></tr>
+            <tr><td>1206 / 1207 / 1208</td><td>住院打标 / 明细上传 / 明细撤销</td><td><code>Business.HospitalInsureItemCheck</code> / <code>HospitalDetailUpload</code> / <code>HospitalDetailCancel</code></td><td><code>ItemMarking</code> / <code>DetailUpload</code> / <code>DetailUploadDel</code></td><td>国家 2301/2302；五期 SN01/SN02</td><td>打标是本地判断；明细上传和撤销围绕医保端费用明细状态。</td></tr>
+            <tr><td>1209 / 1210</td><td>出院登记 / 撤销出院</td><td><code>Business.HospitalOut</code> / <code>HospitalOutCancel</code></td><td><code>LeaveSwap</code> / <code>LeaveDelSwap</code></td><td>国家 2402/2405；五期以本地状态和登记撤销工具配合</td><td>国家出院办理在预结算阶段也会被触发，撤销出院常用于明细撤销前解除医保端出院状态。</td></tr>
+            <tr><td>1219 / 1211</td><td>住院预结算 / 住院正式结算</td><td><code>Business.HospitalPreSettle</code> / <code>HospitalSettle</code></td><td><code>WipeoffMoney</code> / <code>SettleSwap</code></td><td>国家 2301/2402/2303/2304；五期 SN01/SI51/SI52</td><td><code>1219</code> 单独做预结算展示，<code>1211</code> 结算入口内也会先预结算再正式结算。</td></tr>
+            <tr><td>1212</td><td>住院取消结算 / 退费</td><td><code>Business.HospitalSettleBack</code></td><td><code>SettleDelSwap</code></td><td>国家 2305；五期 SK01</td><td>撤销的是已确认的住院医保结算，HIS 还要同步冲销本地 <code>public.pt_balance / public.pt_balance_detail</code>。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="chart-0-1">
+      <div class="section-head">
+        <div>
+          <h2>图 0-1：四条业务正反流程对照</h2>
+          <p>把 “正向链路 → 完成态 → 反向链路 → 反向交易号” 一次摊开，避免新手只看到正向方法名而漏掉反流程。</p>
+        </div>
+        <span class="pill">正反向对称</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+flowchart TB
+    subgraph OP1[门诊挂号]
+      OP1_F[正向：1101 选择保险 -> Identify<br/>1106 ClincSettle -> ClinicPreSwap handle_type=3<br/>1106 -> ClinicSwap handle_type=3] --> OP1_DONE[完成：写 ins_visit<br/>ins_balance / ins_reg_record]
+      OP1_DONE --> OP1_R[反向：1107 ClincSettleBack<br/>ClinicDelSwap + 必要时挂号撤销]
+      OP1_R --> OP1_TX[国家：2208、2205、2202<br/>五期：SK01、SN02]
+    end
+
+    subgraph OP2[门诊结算]
+      OP2_F[正向：1103 -> ItemMarking<br/>1106 -> ClinicPreSwap<br/>1106 -> ClinicSwap] --> OP2_DONE[完成：写 ins_fee_detail<br/>ins_visit / ins_balance]
+      OP2_DONE --> OP2_R[反向：1107 ClincSettleBack<br/>ClinicDelSwap]
+      OP2_R --> OP2_TX[国家：2208、2205<br/>五期：SK01、SN02]
+    end
+
+    subgraph IP1[住院登记]
+      IP1_F[正向：1201 -> Identify<br/>1202/1203 -> ComeInSwap<br/>1209 -> LeaveSwap] --> IP1_DONE[完成：写 ins_visit<br/>本地出院状态]
+      IP1_DONE --> IP1_R[反向：1204 -> ComeInDelSwap<br/>1210 -> LeaveDelSwap]
+      IP1_R --> IP1_TX[国家：2404、2405<br/>五期：SJ21]
+    end
+
+    subgraph IP2[住院结算]
+      IP2_F[正向：1206 -> ItemMarking<br/>1219/1211 -> WipeoffMoney<br/>1211 -> SettleSwap] --> IP2_DONE[完成：写 ins_fee_detail<br/>ins_visit / ins_balance]
+      IP2_DONE --> IP2_R[反向：1208 -> DetailUploadDel<br/>1212 -> SettleDelSwap]
+      IP2_R --> IP2_TX[国家：2302、2305<br/>五期：SN02、SK01]
+    end
+
+    OP1_TX --> HIS_BACK[HIS 本地结算闭环<br/>public.pt_balance / public.pt_balance_detail<br/>退号 / 退费 / 状态回写]
+    OP2_TX --> HIS_BACK
+    IP1_TX --> HIS_BACK
+    IP2_TX --> HIS_BACK
+
+    style OP1_F fill:#e8f8f5,stroke:#117864
+    style OP2_F fill:#fef5e7,stroke:#b9770e
+    style IP1_F fill:#ebf5fb,stroke:#2874a6
+    style IP2_F fill:#f4ecf7,stroke:#7d3c98
+    style OP1_R fill:#fdecea,stroke:#c0392b
+    style OP2_R fill:#fdecea,stroke:#c0392b
+    style IP1_R fill:#fdecea,stroke:#c0392b
+    style IP2_R fill:#fdecea,stroke:#c0392b
+    style HIS_BACK fill:#d5f5e3,stroke:#27ae60
+</pre>
+      </div>
+    </section>
+
+    <section class="section" id="chart-0-2">
+      <div class="section-head">
+        <div>
+          <h2>图 0-2：医保打标横切流程</h2>
+          <p>医保打标在门诊结算和住院结算前都会触发，逻辑统一在这一张图里看；它只读本地对照表，不调中心交易，未对码或限制不允许的项目会被拦截。</p>
+        </div>
+        <span class="pill">本地判断 · 不调中心</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+flowchart LR
+    ORDER[医嘱 / 收费项目] --> MARK[ItemMarking<br/>医保项目打标]
+    MARK --> MAP[读取本地对码<br/>ins_item_vs / ins_item]
+    MAP --> LIMIT{是否医保项目<br/>是否限制项目}
+    LIMIT -->|非医保项目| SELF[返回自费标识]
+    LIMIT -->|普通医保项目| INS[返回医保标识]
+    LIMIT -->|限制项目| ASK[提示操作员确认<br/>是否允许医保报销]
+    ASK -->|是| INS
+    ASK -->|否| SELF
+
+    INS --> OP[门诊结算前<br/>费用明细上传]
+    SELF --> OP
+    INS --> IP[住院结算前<br/>费用明细上传]
+    SELF --> IP
+
+    OP --> CENTER[后续才进入医保中心交易]
+    IP --> CENTER
+
+    style MARK fill:#117864,color:#fff
+    style LIMIT fill:#f39c12,color:#fff
+    style ASK fill:#f9e79f,stroke:#b9770e
+    style CENTER fill:#e74c3c,color:#fff
+</pre>
+      </div>
+    </section>
+
+    <section class="section" id="chart-1">
+      <div class="section-head">
+        <div>
+          <h2>图 1：三层职责与交互总览</h2>
+          <p>HIS 客户端、医保总控、医保接口实现的职责边界。HIS 不直接连医保中心，所有中心调用都收敛在第三层；HIS5.0 在第二层新增了 CA 签名路由分支。</p>
+        </div>
+        <span class="pill">三层 · 单向依赖</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+block-beta
+  columns 1
+
+  block:layer1:1
+    columns 3
+    A["🖥️ 第一层：HIS 客户端\n(sdp.cpapi)"]
+    space
+    A_desc["职责：\n• 接收前端请求\n• 反射加载总控 DLL\n• 解析返回值给前端"]
+  end
+
+  space
+
+  block:layer2:1
+    columns 3
+    B["⚙️ 第二层：医保总控\n(zlchs.Interface.Control)"]
+    space
+    B_desc["职责：\n• business_type 路由分发\n• 1101/1106/1211 等编号落到 Business.*\n• 动态加载医保 DLL\n• ★ CA签名路由(HIS5.0)"]
+  end
+
+  space
+
+  block:layer3:1
+    columns 3
+    C["🏥 第三层：医保接口实现\n(Cls_Webhis / Cls_BJGJBYB / Cls_SHGBYB)"]
+    space
+    C_desc["职责：\n• 实现 IInsureInterface\n• 操作本地数据库\n• 🔗 调用医保中心 API\n• 返回结算结果"]
+  end
+
+  A --> B
+  B --> C
+
+  style A fill:#3498db,color:#fff
+  style B fill:#e67e22,color:#fff
+  style C fill:#27ae60,color:#fff
+  style A_desc fill:#d6eaf8,stroke:#3498db
+  style B_desc fill:#fdebd0,stroke:#e67e22
+  style C_desc fill:#d5f5e3,stroke:#27ae60
+</pre>
+      </div>
+    </section>
+
+    <section class="section" id="chart-2a">
+      <div class="section-head">
+        <div>
+          <h2>图 2A：HIS 反射加载链路（请求进入总控）</h2>
+          <p>请求从 HIS 前端 <code>ProcessRequest</code> 出发，经 <code>WebInsurance</code> → <code>CommonTools</code> → <code>Common.Interface()</code> 三段反射，最终落到 <code>Business</code> 业务编排。这一段只负责 “把请求接进总控”，业务真正闭环在图 2B。</p>
+        </div>
+        <span class="pill">前端 → 总控编排</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant HIS as HIS 前端
+    participant WI as WebInsurance<br/>插件
+    participant CT as CommonTools<br/>反射加载
+    participant CM as Common.Interface()<br/>总控入口
+    participant BZ as Business<br/>业务编排
+
+    HIS->>WI: ProcessRequest("Interface", json)
+    Note over WI: PluginsWebInsurance<br/>解析请求方法
+    WI->>CT: CallBusinessControl(InsureControl, json)
+    Note over CT: Assembly.Load("zlchs.Interface.Control")<br/>反射加载总控 DLL
+    CT->>CM: 反射调用 Interface(json)
+
+    Note over CM: ① 解析 business_type="1106"<br/>② 从 token 注入 org_id 等上下文<br/>③ switch 路由到对应业务方法
+
+    CM->>BZ: ClincSettle(DataIn)
+    Note over BZ: 进入业务编排闭环<br/>详见图 2B
+    BZ-->>CM: 业务执行结果<br/>{code:"1", data:{...}}
+
+    CM-->>CT: JSON 字符串
+    CT-->>WI: PluginResult.Value = data
+    WI-->>HIS: 显示"结算完成"
+</pre>
+      </div>
+    </section>
+
+    <section class="section" id="chart-2b">
+      <div class="section-head">
+        <div>
+          <h2>图 2B：业务编排闭环（门诊结算 1106 为例）</h2>
+          <p>承接图 2A 第 7 步 <code>ClincSettle(DataIn)</code>。以北京医保 <code>Cls_BJGJBYB</code> 为例，分初始化、预结算、正式结算、查余额四段。其中初始化段才会出现 <code>ObjectReflection</code> + <code>insur.ins_system</code> 的反射加载子流程。</p>
+        </div>
+        <span class="pill">sequence · 四段闭环</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant BZ as Business<br/>业务编排
+    participant IB as InsureBusiness<br/>路由代理
+    participant OR as ObjectReflection<br/>动态加载
+    participant MI as Cls_BJGJBYB<br/>北京医保实现
+    participant YB as 🔗 医保中心
+
+    rect rgb(230, 240, 255)
+        Note over BZ,MI: ① 初始化（反射加载第三层实现）
+        BZ->>IB: InitInsure(json)
+        IB->>OR: 查 insur.ins_system 取 interface_name<br/>CreateObject("zlchs.BJ.XBYB.insure", "Cls_", ...)
+        OR-->>IB: new Cls_BJGJBYB()
+        IB->>MI: InitInsure(json)
+        MI-->>IB: true (加载配置参数)
+    end
+
+    rect rgb(255, 243, 224)
+        Note over BZ,YB: ② 预结算
+        BZ->>IB: ClinicPreSwap(json)
+        IB->>MI: ClinicPreSwap(json)
+        MI->>MI: 查询档案 + 费用明细
+        MI->>YB: 🔗 MedicareComHelper.Divide()<br/>费用分解
+        YB-->>MI: 分解结果 XML
+        MI->>MI: 更新 ins_fee_detail
+        MI-->>IB: {code:"1", settle_type:[...]}
+        IB-->>BZ: 预结算结果
+    end
+
+    rect rgb(232, 245, 233)
+        Note over BZ,YB: ③ 正式结算
+        BZ->>IB: ClinicSwap(json)
+        IB->>MI: ClinicSwap(json)
+        MI->>MI: 查询就诊记录
+        MI->>MI: Frm结算报销信息 确认
+        MI->>YB: 🔗 MedicareComHelper.TradeAll()<br/>交易确认
+        YB-->>MI: 结算确认结果
+        MI->>MI: INSERT ins_balance
+        MI-->>IB: {code:"1", settle_type:[...]}
+        IB-->>BZ: 结算结果
+    end
+
+    rect rgb(237, 231, 246)
+        Note over BZ,MI: ④ 查余额
+        BZ->>IB: SelfBalance(json)
+        IB->>MI: SelfBalance(json)
+        MI->>MI: SELECT swap_info->>'选择余额'<br/>FROM insur.ins_archive
+        MI-->>IB: {personal_account:"500.00"}
+        IB-->>BZ: 余额结果
+    end
+
+    Note over BZ: 组织最终返回值<br/>{code:"1", data:{settle_type, personal_account, ...}}<br/>回到图 2A 第 9 步
+</pre>
+      </div>
+    </section>
+
+    <section class="section" id="chart-3">
+      <div class="section-head">
+        <div>
+          <h2>图 3：各层内部结构与类关系</h2>
+          <p>各层内部的关键类与依赖；★ 标记是 HIS5.0 新增的 CA 签名分支（<code>CAInterfaceBusiness</code> + <code>I_CAInterface</code> + 字典缓存）。第三层向下收敛三种通信方式：HTTP、SOAP、本地 DLL。</p>
+        </div>
+        <span class="pill">类与依赖关系</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+graph TB
+    subgraph L1["第一层：HIS 客户端 (sdp.cpapi)"]
+        direction TB
+        WI[WebInsurance<br/>ProcessRequest] --> WIH[WebInsuranceHelper<br/>Interface]
+        WIH --> CT[CommonTools<br/>CallBusinessControl]
+        CT --> EIM[ExceInsureMethod<br/>Assembly.Load 反射]
+    end
+
+    subgraph L2["第二层：医保总控 (zlchs.Interface.Control)"]
+        direction TB
+        CM[Common.Interface<br/>switch 路由] --> BZ[Business<br/>业务编排]
+        BZ --> IB[InsureBusiness<br/>医保路由代理]
+        BZ --> CA[CAInterfaceBusiness<br/>CA签名路由 ★]
+        IB --> OR[ObjectReflection<br/>动态加载]
+        CA --> OR
+        IB -. 每次调用 .-> IIF[IInsureInterface<br/>54个方法]
+        CA -. 字典缓存 .-> ICAF[I_CAInterface<br/>6个方法 ★]
+    end
+
+    subgraph L3["第三层：医保接口实现"]
+        direction TB
+        CW[Cls_Webhis<br/>测试实现<br/>1538行]
+        CB[Cls_BJGJBYB<br/>北京医保<br/>4622行]
+        CG[Cls_GDYB<br/>广东医保<br/>3796行]
+        CW -.-> DB1[(insur schema<br/>本地数据库)]
+        CB -.-> DB1
+        CB --> HH[HttpHelper<br/>HTTP WebAPI]
+        CB --> MW[MedicareWebHelper<br/>SOAP WebService]
+        CB --> MC[MedicareComHelper<br/>本地医保库]
+        HH --> YB1[🔗 医保中心<br/>HTTP]
+        MW --> YB2[🔗 医保中心<br/>SOAP]
+        MC --> YB3[🔗 医保中心<br/>DLL]
+    end
+
+    EIM ==> CM
+    OR ==> CW
+    OR ==> CB
+    OR ==> CG
+
+    style L1 fill:#d6eaf8,stroke:#2980b9
+    style L2 fill:#fdebd0,stroke:#e67e22
+    style L3 fill:#d5f5e3,stroke:#27ae60
+    style CA fill:#f9e79f,stroke:#f39c12
+    style ICAF fill:#f9e79f,stroke:#f39c12
+    style YB1 fill:#e74c3c,color:#fff
+    style YB2 fill:#e74c3c,color:#fff
+    style YB3 fill:#e74c3c,color:#fff
+</pre>
+      </div>
+    </section>
+
+    <section class="section" id="chart-4">
+      <div class="section-head">
+        <div>
+          <h2>图 4：动态 DLL 加载机制</h2>
+          <p>从 <code>insur.ins_system</code> 读出 DLL 名称，<code>ObjectReflection.CreateObject</code> 反射加载、匹配 <code>Cls_</code> 前缀类，转成 <code>IInsureInterface</code> 后委托调用。★ 标记是 HIS5.0 在 path 已包含工作目录时的短路。</p>
+        </div>
+        <span class="pill">反射 + 路径短路</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+flowchart LR
+    A[InsureBusiness<br/>提取 ins_id] --> B{查库<br/>insur.ins_system}
+    B -->|找到| C[得到 DLL 名称<br/>如 zlchs.BJ.XBYB.insure]
+    B -->|未找到| D[回退测试实现<br/>zlchs.TEST.Insure]
+    C --> E[ObjectReflection<br/>CreateObject]
+    D --> E
+    E --> F{路径检查<br/>path.Contains?}
+    F -->|不包含| G[设置工作目录<br/>Directory.SetCurrentDirectory]
+    F -->|已包含| H[跳过设置 ★]
+    G --> I[Assembly.LoadFrom<br/>加载 DLL 文件]
+    H --> I
+    I --> J[遍历类型<br/>匹配 Cls_ 前缀]
+    J --> K[Activator.CreateInstance<br/>创建实例]
+    K --> L[转换为<br/>IInsureInterface]
+    L --> M[Iinterface = 实例<br/>后续方法委托调用]
+
+    style A fill:#3498db,color:#fff
+    style B fill:#f39c12,color:#fff
+    style E fill:#e67e22,color:#fff
+    style I fill:#8e44ad,color:#fff
+    style L fill:#27ae60,color:#fff
+    style H fill:#f9e79f,stroke:#f39c12
+</pre>
+      </div>
+    </section>
+
+    <section class="section" id="chart-5">
+      <div class="section-head">
+        <div>
+          <h2>图 5：Business.ClincSettle() 门诊结算编排流程</h2>
+          <p>第二层的业务编排示例。<code>is_split</code> 决定走拆分模式（直接正式结算）还是标准模式（先预结算再结算）；★ 余额查询失败时会自动 <code>ClinicDelSwap</code> 撤销结算。</p>
+        </div>
+        <span class="pill">编排 · 自动回滚</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+flowchart TD
+    START([Business.ClincSettle 开始]) --> INIT[InsureBusiness.InitInsure<br/>初始化医保接口]
+    INIT --> INIT_OK{初始化成功?}
+    INIT_OK -->|失败| ERR1[返回 code:0<br/>初始化失败]
+    INIT_OK -->|成功| SPLIT{is_split == 1?}
+
+    SPLIT -->|是 拆分模式| SWAP[InsureBusiness.ClinicSwap<br/>直接正式结算]
+    SPLIT -->|否 标准模式| PRE[InsureBusiness.ClinicPreSwap<br/>预结算]
+
+    PRE --> PRE_OK{预结算成功?}
+    PRE_OK -->|失败| ERR2[返回 code:0<br/>预结算失败]
+    PRE_OK -->|成功| PRE_SPLIT{返回 is_split == 1?}
+
+    PRE_SPLIT -->|是| BAL[InsureBusiness.SelfBalance<br/>获取账户余额]
+    PRE_SPLIT -->|否| SWAP
+
+    SWAP --> SWAP_OK{结算成功?}
+    SWAP_OK -->|失败| ERR3[返回 code:0<br/>结算失败]
+    SWAP_OK -->|成功| BAL
+
+    BAL --> BAL_OK{余额查询成功?}
+    BAL_OK -->|成功| RET([组织返回值<br/>code:1 + data])
+    BAL_OK -->|失败| DEL[InsureBusiness.ClinicDelSwap<br/>★ 自动撤销结算]
+    DEL --> ERR4[返回 code:0<br/>余额查询失败]
+
+    style START fill:#3498db,color:#fff
+    style RET fill:#27ae60,color:#fff
+    style ERR1 fill:#e74c3c,color:#fff
+    style ERR2 fill:#e74c3c,color:#fff
+    style ERR3 fill:#e74c3c,color:#fff
+    style ERR4 fill:#e74c3c,color:#fff
+    style DEL fill:#f39c12,color:#fff
+</pre>
+      </div>
+    </section>
+
+    <section class="section" id="chart-6">
+      <div class="section-head">
+        <div>
+          <h2>图 6：住院结算超时冲正机制（SettleSwap）</h2>
+          <p>住院 2304 结算超时或医保误差大于 0.1 元时，自动调用 2601 冲正交易；冲正成功后弹窗询问是否重试结算。误差超限分支会写失败但仍发起冲正，避免医保端遗留挂账。</p>
+        </div>
+        <span class="pill">国家 · 2304 + 2601</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+flowchart TD
+    START([SettleSwap 开始]) --> QUERY[查询档案 + 就诊记录 + 预结记录]
+    QUERY --> BUILD[构建 2304 请求<br/>psn_no, mdtrt_id, medfee_sumamt...]
+    BUILD --> CALL["🔗 HttpHelper.YBBusiness('2304')<br/>住院结算"]
+
+    CALL --> OK{请求成功?}
+    OK -->|成功| CHECK_ERR{医保误差 > 0.1元?}
+
+    OK -->|失败| TIMEOUT{错误含 'timed out'?}
+    TIMEOUT -->|否| CANCEL[撤销出院登记<br/>返回失败]
+    TIMEOUT -->|是| FLUSH["🔗 HttpHelper.YBBusiness('2601')<br/>冲正交易"]
+
+    FLUSH --> FLUSH_OK{冲正成功?}
+    FLUSH_OK -->|失败| FAIL1[返回 code:0<br/>冲正失败]
+    FLUSH_OK -->|成功| ASK{弹窗: 是否重试结算?}
+    ASK -->|是| CALL
+    ASK -->|否| CANCEL
+
+    CHECK_ERR -->|否| SAVE[INSERT insur.ins_balance<br/>保存结算记录]
+    CHECK_ERR -->|是| FLUSH2["🔗 冲正交易 2601<br/>误差过大自动冲正"]
+    FLUSH2 --> FAIL2[返回 code:0<br/>医保误差超限]
+
+    SAVE --> RET([返回 code:1<br/>结算成功])
+
+    style START fill:#3498db,color:#fff
+    style CALL fill:#e74c3c,color:#fff
+    style FLUSH fill:#e74c3c,color:#fff
+    style FLUSH2 fill:#e74c3c,color:#fff
+    style RET fill:#27ae60,color:#fff
+    style FAIL1 fill:#7f8c8d,color:#fff
+    style FAIL2 fill:#7f8c8d,color:#fff
+    style CANCEL fill:#7f8c8d,color:#fff
+</pre>
+      </div>
+    </section>
+
+    <section class="section" id="chart-7">
+      <div class="section-head">
+        <div>
+          <h2>图 7：★ HIS5.0 新增 — CA 签名调用链路</h2>
+          <p>HIS5.0 引入 <code>I_CAInterface</code>（6 个方法）和 <code>CAInterfaceBusiness</code>。<code>businesstype</code> 以 “8” 开头时跳过 token 解析直接进入 CA 签名分支；CA 签名实例首次加载后字典缓存，后续复用。</p>
+        </div>
+        <span class="pill">★ HIS5.0 新增</span>
+      </div>
+      <div class="flow-chart">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant HIS as HIS 前端
+    participant CM as Common.Interface()
+    participant BZ as Business
+    participant CAB as CAInterfaceBusiness
+    participant OR as ObjectReflection
+    participant CA as CA签名实现<br/>(CA_ 前缀类)
+
+    HIS->>CM: {business_type:"8004", interface_name:"xxx.CA.dll", signData:{...}}
+
+    Note over CM: ★ businesstype.StartsWith("8")<br/>跳过 token 解析
+
+    CM->>BZ: SendSginData(json)
+
+    Note over BZ: 查询医生信息<br/>qw_base.b_staff
+
+    BZ->>CAB: SendSginData(json)
+    CAB->>CAB: 提取 interface_name
+    CAB->>OR: CreateObject(interfaceName, "CA_", "Plugins.CAInterface")
+
+    Note over CAB: ★ 字典缓存：首次加载后复用
+
+    OR-->>CAB: CA签名实例
+    CAB->>CA: SendSginData(json)
+    CA-->>CAB: 签名结果
+    CAB-->>BZ: 签名结果
+    BZ-->>CM: Response
+    CM-->>HIS: 签名状态 + 二维码
+</pre>
+      </div>
+    </section>
+
+    <p class="footer">作者：Keiskei · 文件用途：HIS 医保三层架构总览说明（基于 HIS 5.0 总控代码 zlchs.Interface.Control 绘制）</p>
+  </main>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      sequence: { mirrorActors: false, messageAlign: 'left' },
+      flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+    });
+  </script>
+</body>
+</html>
