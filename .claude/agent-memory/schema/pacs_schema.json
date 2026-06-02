@@ -1,0 +1,456 @@
+{
+  "domain": "pacs",
+  "domain_name": "检查/影像域",
+  "database": "pacs",
+  "schemas": {
+    "public": {
+      "description": "PACS 主业务表 - 影像检查申请、执行、报告、图像数据",
+      "modules": {
+        "检查申请": {
+          "tables": {
+            "pacs_apply": {
+              "description": "影像检查申请主表，一条记录对应一次影像检查申请，含患者信息、检查项目、申请科室、执行科室、状态等",
+              "key_fields": ["id", "pt_id", "visit_id", "apply_order_no", "study_order_no", "study_item_id"],
+              "relations": {
+                "id": "被 pacs_apply_execute/apply_id、pacs_apply_report/apply_id、pacs_apply_series/apply_id 等引用",
+                "visit_id": "关联住院/门诊就诊记录",
+                "pt_id": "患者主索引"
+              },
+              "field_conventions": {
+                "apply_status": "检查申请状态（0=待执行，其他值需进一步确认）",
+                "data_source": "数据来源（smallint）",
+                "extra_info": "JSON 扩展信息",
+                "merge_flag": "合并标记（0=未合并）"
+              }
+            },
+            "pacs_apply_execute": {
+              "description": "检查执行记录，登记检查设备、技师、执行时间等",
+              "key_fields": ["id", "apply_id", "study_no", "study_room_id", "study_equipment_id"],
+              "relations": {
+                "apply_id": "FK -> pacs_apply.id"
+              },
+              "field_conventions": {
+                "image_status": "影像状态（integer）",
+                "report_print_stauts": "报告打印状态",
+                "film_print_status": "胶片打印状态"
+              }
+            },
+            "pacs_apply_item_part": {
+              "description": "检查部位明细"
+            },
+            "pacs_apply_notes": {
+              "description": "检查申请备注"
+            }
+          }
+        },
+        "检查报告": {
+          "tables": {
+            "pacs_apply_report": {
+              "description": "检查报告主表，含诊断医生、审核医生、报告内容（info_text）、结构化报告（element_json/outline_json）",
+              "key_fields": ["id", "apply_id", "report_status"],
+              "relations": {
+                "apply_id": "FK -> pacs_apply.id"
+              },
+              "field_conventions": {
+                "report_status": "报告状态（integer）",
+                "info_text": "报告文本内容（text）",
+                "element_json": "结构化报告元素 JSON（text）",
+                "outline_json": "报告大纲 JSON（text）",
+                "pdf_status": "PDF 生成状态（0=未生成）",
+                "interim_report": "是否中间报告（0=否）",
+                "positive_code": "阳性标志（integer）",
+                "critical_value_code": "危急值标志（integer）"
+              }
+            },
+            "pacs_apply_report_history": {
+              "description": "报告历史版本"
+            },
+            "pacs_apply_report_history_outline": {
+              "description": "报告历史大纲"
+            },
+            "pacs_apply_report_outline": {
+              "description": "报告大纲/模板"
+            },
+            "pacs_apply_report_label": {
+              "description": "报告标签"
+            },
+            "pacs_apply_report_lock": {
+              "description": "报告锁定记录"
+            }
+          }
+        },
+        "检查序列与影像": {
+          "tables": {
+            "pacs_apply_series": {
+              "description": "检查序列（DICOM Series），一个检查包含多个序列",
+              "key_fields": ["id", "apply_id", "study_uid", "series_uid"],
+              "relations": {
+                "apply_id": "FK -> pacs_apply.id"
+              },
+              "constraints": "UNIQUE (apply_id, study_uid, series_uid)"
+            },
+            "pacs_apply_series_image": {
+              "description": "检查序列图像（DICOM Image），一个序列包含多张图像",
+              "key_fields": ["id", "apply_id", "series_uid", "image_uid", "image_no"],
+              "relations": {
+                "apply_id": "关联 pacs_apply.id",
+                "series_uid": "关联 pacs_apply_series.series_uid"
+              },
+              "constraints": "UNIQUE (apply_id, series_uid, image_uid)",
+              "field_conventions": {
+                "dcm_image_type": "DICOM 图像类型（text）",
+                "dcm_repetition_time": "DICOM 重复时间 TR",
+                "dcm_echo_time": "DICOM 回波时间 TE",
+                "diffusion_b_value": "扩散加权 b 值",
+                "key_image_status": "关键图像标记",
+                "sync_status": "同步状态"
+              }
+            },
+            "pacs_image_desc": {
+              "description": "图像描述信息"
+            },
+            "pacs_cache_image": {
+              "description": "图像缓存"
+            }
+          }
+        },
+        "其他业务": {
+          "tables": {
+            "pacs_follow_visit": {
+              "description": "随访记录",
+              "relations": {
+                "apply_id": "FK -> pacs_apply.id"
+              }
+            },
+            "pacs_follow_visit_files": {
+              "description": "随访附件",
+              "relations": {
+                "apply_id": "FK -> pacs_apply.id"
+              }
+            },
+            "pacs_typical_cases_details": {
+              "description": "典型病例明细",
+              "relations": {
+                "apply_id": "FK -> pacs_apply.id"
+              }
+            },
+            "pacs_typical_cases_group": {
+              "description": "典型病例分组"
+            },
+            "pacs_message": {
+              "description": "PACS 消息记录",
+              "relations": {
+                "apply_id": "FK -> pacs_apply.id"
+              }
+            },
+            "pacs_area_apply": {
+              "description": "区域检查申请"
+            },
+            "pacs_external_order_mapping": {
+              "description": "外部医嘱对照"
+            },
+            "pacs_no_group_image_patient": {
+              "description": "未分组影像患者"
+            },
+            "pacs_apply_fee": {
+              "description": "检查费用"
+            },
+            "pacs_apply_fee_details": {
+              "description": "检查费用明细"
+            },
+            "pacs_apply_refund_resend": {
+              "description": "退费重发记录"
+            },
+            "pacs_apply_refund_resend": {
+              "description": "退费重发记录"
+            },
+            "data_syn": {
+              "description": "数据同步记录"
+            },
+            "flink_cdc_heart": {
+              "description": "Flink CDC 心跳"
+            },
+            "trans_process": {
+              "description": "事务处理记录"
+            },
+            "zl脚本内容": {
+              "description": "系统脚本内容（bytea 存储）"
+            },
+            "zl脚本模块": {
+              "description": "系统脚本模块"
+            }
+          }
+        }
+      }
+    },
+    "erms": {
+      "description": "影像报告管理子系统（ERMS）相关表",
+      "modules": {
+        "检查资源与预约": {
+          "tables": {
+            "bpacs_erms_apply": {
+              "description": "ERMS 检查申请（可能是从 HIS 同步或 ERMS 独立申请的记录）"
+            },
+            "bpacs_erms_apply_trace": {
+              "description": "ERMS 申请跟踪"
+            },
+            "bpacs_erms_apply_verify": {
+              "description": "ERMS 申请审核"
+            },
+            "bpacs_erms_reserve_merge_data": {
+              "description": "预约合并数据"
+            },
+            "bpacs_erms_resources": {
+              "description": "ERMS 资源"
+            },
+            "bpacs_erms_resources_clin_item": {
+              "description": "资源对应检查项目"
+            },
+            "bpacs_erms_resources_clin_item_part": {
+              "description": "资源检查项目部位"
+            },
+            "bpacs_erms_resources_eqpt": {
+              "description": "资源设备"
+            },
+            "bpacs_erms_resources_eqpt_repair": {
+              "description": "设备维修记录"
+            },
+            "bpacs_erms_resources_item": {
+              "description": "资源项目"
+            },
+            "bpacs_erms_resources_item_arrange": {
+              "description": "项目排班"
+            },
+            "bpacs_erms_resources_item_crowd": {
+              "description": "项目适用人群"
+            },
+            "bpacs_erms_resources_item_dept": {
+              "description": "项目适用科室"
+            },
+            "bpacs_erms_resources_item_eqpt": {
+              "description": "项目对应设备"
+            },
+            "bpacs_erms_resources_item_mutex": {
+              "description": "项目互斥"
+            },
+            "bpacs_erms_resources_item_scene": {
+              "description": "项目适用场景"
+            },
+            "bpacs_erms_resources_time_slot": {
+              "description": "资源时段"
+            },
+            "bpacs_erms_scheduling_time_slot": {
+              "description": "排班时段"
+            },
+            "bpacs_erms_crowd_feature": {
+              "description": "人群特征"
+            }
+          }
+        },
+        "黑名单": {
+          "tables": {
+            "bpacs_erms_blacklist": {
+              "description": "ERMS 黑名单"
+            },
+            "bpacs_erms_blacklist_backup": {
+              "description": "黑名单备份"
+            },
+            "bpacs_erms_blacklist_detail": {
+              "description": "黑名单明细"
+            }
+          }
+        }
+      }
+    },
+    "ecg": {
+      "description": "心电图子系统相关表",
+      "modules": {
+        "心电检查": {
+          "tables": {
+            "ecg_apply_report_content": {
+              "description": "心电申请报告内容"
+            },
+            "ecg_apply_report_content_history": {
+              "description": "心电报告历史内容"
+            },
+            "ecg_apply_report_indicators": {
+              "description": "心电报告指标"
+            },
+            "ecg_apply_report_indicators_history": {
+              "description": "心电报告指标历史"
+            },
+            "ecg_files": {
+              "description": "心电文件"
+            },
+            "ecg_files_indicators": {
+              "description": "心电文件指标"
+            },
+            "ecg_mr_classify": {
+              "description": "心电病历分类"
+            },
+            "ecg_mr_details": {
+              "description": "心电病历明细"
+            }
+          }
+        },
+        "质控与模板": {
+          "tables": {
+            "ecg_qc_remark": {
+              "description": "心电质控备注",
+              "relations": {
+                "apply_id": "FK -> public.pacs_apply.id"
+              }
+            },
+            "ecg_qc_result": {
+              "description": "心电质控结果",
+              "relations": {
+                "apply_id": "FK -> public.pacs_apply.id"
+              }
+            },
+            "ecg_qc_result_details": {
+              "description": "心电质控结果明细"
+            },
+            "ecg_qc_spot_check": {
+              "description": "心电抽检"
+            },
+            "ecg_qc_spot_check_details": {
+              "description": "心电抽检明细",
+              "relations": {
+                "apply_id": "FK -> public.pacs_apply.id"
+              }
+            },
+            "becg_critical_value_catalogue": {
+              "description": "危急值目录"
+            },
+            "becg_diagnosis_classify": {
+              "description": "诊断分类"
+            },
+            "becg_diagnosis_classify_info": {
+              "description": "诊断分类信息"
+            },
+            "becg_indicators_classfiy": {
+              "description": "指标分类"
+            },
+            "becg_indicators_detailes": {
+              "description": "指标明细"
+            },
+            "becg_indicators_unit": {
+              "description": "指标单位"
+            },
+            "becg_qc_level": {
+              "description": "质控级别"
+            },
+            "becg_qc_standard": {
+              "description": "质控标准"
+            },
+            "becg_report_template": {
+              "description": "报告模板"
+            },
+            "becg_report_template_equipment": {
+              "description": "模板对应设备"
+            },
+            "becg_report_template_indicators": {
+              "description": "模板指标"
+            },
+            "becg_report_template_indicators_exp": {
+              "description": "模板指标表达式"
+            },
+            "becg_report_template_item": {
+              "description": "模板项目"
+            },
+            "becg_report_template_parameter": {
+              "description": "模板参数"
+            },
+            "becg_report_template_receipt": {
+              "description": "模板回执"
+            },
+            "becg_symbol_info": {
+              "description": "符号信息"
+            },
+            "ecg_user_custom_search": {
+              "description": "用户自定义搜索"
+            }
+          }
+        }
+      }
+    },
+    "qw_base": {
+      "description": "从上游同步的 PACS 本地字典副本",
+      "sync_tables": {
+        "检查字典": {
+          "bpacs_study_type": "检查类型字典",
+          "bpacs_element": "影像元素",
+          "bpacs_element_class": "元素分类",
+          "bpacs_eqpmtn_storage": "设备存储",
+          "bpacs_item_org": "检查项目机构对照",
+          "bpacs_item_parts": "检查项目部位",
+          "bpacs_number_class": "编号分类",
+          "bpacs_number_detail": "编号明细",
+          "bpacs_number_rules": "编号规则",
+          "bpacs_parts": "检查部位",
+          "bpacs_parts_group": "部位分组",
+          "bpacs_parts_method": "部位方法",
+          "bpacs_qltctr_rule": "质控规则",
+          "bpacs_room": "检查房间",
+          "bpacs_room_equipment": "房间设备",
+          "bpacs_room_equipment_part_match": "房间设备部位匹配"
+        },
+        "报告字典": {
+          "bpacs_report_label": "报告标签",
+          "bpacs_report_outline": "报告大纲",
+          "bpacs_report_protptype": "报告原型",
+          "bpacs_report_protptype_org": "报告原型机构",
+          "bpacs_report_template": "报告模板",
+          "bpacs_report_template_image": "报告模板影像",
+          "bpacs_report_template_org": "报告模板机构",
+          "bpacs_report_template_outline": "报告模板大纲",
+          "bpacs_report_template_suit_item": "报告模板适用项目",
+          "bpacs_report_term_bind": "报告术语绑定",
+          "bpacs_report_term_classify": "报告术语分类",
+          "bpacs_report_term_details": "报告术语明细",
+          "bpacs_report_term_outline": "报告术语大纲"
+        },
+        "通用字典": {
+          "b_clin_item": "诊疗项目",
+          "b_clin_item_class": "诊疗项目分类",
+          "b_clin_item_extend": "诊疗项目扩展",
+          "b_dept": "科室字典",
+          "b_drug": "药品字典",
+          "b_drug_class": "药品分类",
+          "b_drug_variety": "药品剂型",
+          "b_fee_item": "收费项目",
+          "b_fee_item_class": "收费项目分类",
+          "b_org": "机构字典",
+          "b_staff": "人员字典",
+          "b_staff_org": "人员机构",
+          "bhis_clin_item_dept": "诊疗项目科室",
+          "bhis_clin_item_org": "诊疗项目机构",
+          "bhis_dept_staff_vs": "科室人员对照",
+          "bhis_exam_parts": "检查部位"
+        }
+      }
+    }
+  },
+  "field_conventions": {
+    "id": "主键，character varying(36)，UUID 格式",
+    "apply_id": "关联 pacs_apply.id 的外键",
+    "pt_id": "患者主索引（patient 域的主键）",
+    "visit_id": "就诊流水号，用于关联住院/门诊就诊记录",
+    "apply_status": "检查申请状态（smallint，0=待执行）",
+    "report_status": "报告状态（integer）",
+    "image_status": "影像状态（integer）"
+  },
+  "cross_domain_relations": {
+    "visit_id": "与 inp.public.inp_visit.visit_id、outpatient.public.outp_visit.visit_id 关联",
+    "pt_id": "与 patient.public.patient.pt_id 关联",
+    "apply_order_no": "对应 HIS 医嘱的申请单号",
+    "study_order_no": "DICOM Study Order Number"
+  },
+  "core_tables_notes": {
+    "pacs_apply": "核心主表，存储患者影像检查记录。含完整患者基本信息（姓名、性别、出生日期、年龄、身份证、电话、地址）、检查信息（检查项目、类型、优先级）、临床信息（申请目的、临床表现、诊断）、申请/执行科室医生、状态等。查询影像检查记录优先从该表入手。",
+    "pacs_apply_execute": "通过 apply_id 关联 pacs_apply，记录检查执行信息（设备、登记时间、技师等）",
+    "pacs_apply_series": "DICOM 层级：检查(Study) → 序列(Series) → 图像(Image)",
+    "pacs_apply_series_image": "DICOM 图像层，含 DICOM 标签（TR/TE/b 值等）",
+    "pacs_apply_report": "报告内容，通过 apply_id 关联，一个检查可以有多个报告版本"
+  }
+}

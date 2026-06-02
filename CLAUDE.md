@@ -11,6 +11,18 @@
 - `wiki/` 层：整理后的知识，可自由编辑非 README.md 的 .md 文件
 - `schema/` 层：规范定义文件，修改前需确认
 
+## Git 流程（项目级覆盖全局规则）
+
+**覆盖全局 CLAUDE.md 的 push 二次授权规则**：在本项目里，当用户说"提交并推送"、"提交代码并推送到远程"等同时包含 commit + push 意图的指令时，**一气呵成执行 commit + pull --rebase + push，不再单独询问 push 授权**。
+
+保留的安全检查：
+
+- 首次 commit 前仍然复述变更摘要 + 提议 commit message 让用户确认，避免误提交不想要的改动
+- 用户单独说"提交"、"commit"（没提推送）时，仍然只做 commit，不顺手 push
+- 推送前仍然 `git pull --rebase` 一次
+
+**Why**：his-wiki 是 Keiskei 个人维护的知识库，大量整理类工作（迁移目录、入库新资料、补 troubleshooting 案例）每次都拆成"commit → 等确认 → push"会显著拖慢节奏。本项目信任度更高，二次授权这层保险可以省掉。
+
 ## 外部接口开发任务自动触发
 
 当用户的需求命中以下任一信号词，**立即停下、先 Read `wiki/api/plugin-development.md`**（重点是开头的「场景识别」章节），再继续追问/写代码。目的：消除每次新会话重新解释"HIS 外部接口两条挂载线"的成本。

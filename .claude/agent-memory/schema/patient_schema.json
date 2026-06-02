@@ -1,0 +1,465 @@
+{
+  "domain": "patient",
+  "domain_name": "患者域",
+  "database": "patient",
+  "schemas": {
+    "qw_base": {
+      "description": "患者主数据（从上游同步的本地字典副本，实际是患者核心数据的主表所在）",
+      "modules": {
+        "患者基本信息": {
+          "tables": {
+            "bhis_pt_info": {
+              "description": "患者基本信息主表（63列），存储患者档案核心数据",
+              "key_fields": ["id", "name", "id_card_no", "org_id", "archive_no"],
+              "columns_notes": {
+                "id": "主键，UUID (varchar 36)",
+                "archive_no": "档案号 (varchar 20)",
+                "name": "患者姓名",
+                "py_code": "姓名拼音码",
+                "sex": "性别代码（关联 b_sex）",
+                "id_card_type": "证件类型代码（关联 b_id_card_category）",
+                "id_card_no": "证件号码（身份证号）",
+                "birthday": "出生日期",
+                "country": "国家/地区",
+                "birth_address": "出生地/籍贯",
+                "native_place": "籍贯",
+                "nationality": "民族代码（关联 b_nationality）",
+                "occupation": "职业代码（关联 b_occupation）",
+                "marital": "婚姻状况代码（关联 b_marital）",
+                "now_address": "现住址",
+                "census_address": "户籍地址",
+                "tel": "联系电话",
+                "contacts": "联系人姓名",
+                "contacts_tel": "联系人电话",
+                "relationship": "与联系人关系代码（关联 b_relationship）",
+                "educational": "学历代码（关联 b_educational）",
+                "org_id": "所属机构编码",
+                "dept_id": "所属科室",
+                "status": "患者状态（smallint）",
+                "source": "来源（smallint）",
+                "pt_class": "患者分类",
+                "is_real_name": "是否实名（smallint）",
+                "extra_info": "扩展信息（JSON，可能包含血型等额外字段）",
+                "medical_payment_mode": "医疗付费方式代码",
+                "mpi_id": "MPI主索引ID",
+                "live_type": "居住类型",
+                "email": "电子邮箱",
+                "payment_mode_name": "付费方式名称",
+                "description": "备注描述",
+                "english_name": "英文名",
+                "channel_type": "渠道类型",
+                "contact_card": "联系卡号",
+                "surname": "姓（英文）",
+                "given_name": "名（英文）",
+                "pt_no": "患者编号",
+                "pinyin": "拼音全拼",
+                "employ": "工作单位",
+                "employ_adderss": "工作单位地址（原字段拼写如此）",
+                "employ_tel": "工作单位电话",
+                "employ_postal_code": "工作单位邮编",
+                "postal_code": "现住址邮编",
+                "census_postal_code": "户籍邮编",
+                "census_province_code": "户籍省代码",
+                "census_region_code": "户籍市代码",
+                "census_county_code": "户籍区县代码",
+                "census_township_code": "户籍乡镇代码",
+                "census_village_code": "户籍村代码",
+                "now_province_code": "现住址省代码",
+                "now_region_code": "现住址市代码",
+                "now_county_code": "现住址区县代码",
+                "now_township_code": "现住址乡镇代码",
+                "now_village_code": "现住址村代码",
+                "now_address_extra": "现住址补充",
+                "census_address_extra": "户籍地址补充",
+                "creator": "创建人",
+                "creator_id": "创建人ID",
+                "create_time": "创建时间",
+                "update_time": "更新时间"
+              },
+              "indexes": {
+                "pk_pt_info": "PRIMARY KEY (id)",
+                "uq_pt_info$id_card_no": "UNIQUE (id_card_no, id_card_type) — 证件号和证件类型联合唯一",
+                "bhis_pt_info_tel_idx": "btree (tel)",
+                "idx_pt_info_status_name": "btree (status, name text_pattern_ops)",
+                "idx_pt_info_status_py_code": "btree (status, py_code text_pattern_ops)",
+                "ix_pt_info$name": "btree (name)",
+                "ix_pt_info$py_code": "btree (py_code)"
+              },
+              "relations": {
+                "id": "被 pt_diagnosis.pt_id、bhis_pt_id_card.pt_id、pt_merge_vs、bhis_pt_signing_status.pt_id、pt_tag_vs.pt_id 引用"
+              }
+            },
+            "bhis_pt_id_card": {
+              "description": "患者就诊卡/卡号管理表",
+              "key_fields": ["id", "pt_id", "no", "card_category_id"],
+              "columns_notes": {
+                "id": "主键 UUID",
+                "pt_id": "关联 bhis_pt_info.id",
+                "no": "卡号",
+                "password": "密码",
+                "effective_date": "生效日期",
+                "expiry_date": "失效日期",
+                "org_id": "机构",
+                "card_category_id": "卡类别（关联 b_id_card_category）",
+                "status": "状态",
+                "fee_card": "卡余额",
+                "balance_id": "账户ID",
+                "balance_name": "账户名称"
+              }
+            },
+            "bhis_pt_signing_status": {
+              "description": "患者签约状态（如医保电子凭证签约）",
+              "key_fields": ["pt_id", "org_id", "id_card_no"],
+              "columns_notes": {
+                "id": "主键",
+                "pt_id": "关联 bhis_pt_info.id",
+                "org_id": "机构ID",
+                "status": "签约状态（smallint）",
+                "id_card_type": "证件类型",
+                "id_card_no": "证件号",
+                "update_time": "更新时间"
+              }
+            },
+            "bhis_card_no": {
+              "description": "患者卡号信息（未知结构）"
+            }
+          }
+        },
+        "基础字典（同步副本）": {
+          "tables": {
+            "b_abo": {
+              "description": "ABO血型字典",
+              "key_fields": ["id", "code", "name"],
+              "columns": {
+                "id": "主键",
+                "name": "血型名称（如 A、B、AB、O）",
+                "code": "血型编码",
+                "py_code": "拼音码",
+                "description": "描述",
+                "status": "状态",
+                "sno": "排序号",
+                "is_fix": "是否固定（smallint）",
+                "is_default": "是否默认",
+                "parent_id": "父级ID"
+              }
+            },
+            "b_rh": {
+              "description": "Rh血型字典"
+            },
+            "b_sex": {
+              "description": "性别字典"
+            },
+            "b_nationality": {
+              "description": "民族字典"
+            },
+            "b_country": {
+              "description": "国家字典"
+            },
+            "b_marital": {
+              "description": "婚姻状况字典"
+            },
+            "b_occupation": {
+              "description": "职业字典"
+            },
+            "b_educational": {
+              "description": "学历字典"
+            },
+            "b_relationship": {
+              "description": "与联系人关系字典"
+            },
+            "b_org": {
+              "description": "机构字典"
+            },
+            "b_dept": {
+              "description": "科室字典"
+            },
+            "b_staff": {
+              "description": "员工字典"
+            },
+            "b_staff_org": {
+              "description": "员工机构关联"
+            },
+            "b_region": {
+              "description": "行政区划字典"
+            },
+            "b_id_card_category": {
+              "description": "证件类型字典"
+            },
+            "b_id_card_accout": {
+              "description": "证件账户关联（拼写如此）"
+            },
+            "b_past_item_category": {
+              "description": "既往史项目类别字典",
+              "key_fields": ["code", "name"],
+              "columns": {
+                "id": "主键",
+                "code": "类别编码",
+                "name": "类别名称",
+                "py_code": "拼音码",
+                "code_system": "编码系统",
+                "description": "描述",
+                "is_unique": "是否唯一（smallint）",
+                "update_time": "更新时间"
+              }
+            }
+          }
+        }
+      }
+    },
+    "public": {
+      "description": "患者业务表（扩展信息、诊断、修改记录等）",
+      "modules": {
+        "诊断管理": {
+          "tables": {
+            "pt_diagnosis": {
+              "description": "患者诊断记录表",
+              "key_fields": ["id", "pt_id", "visit_id"],
+              "columns_notes": {
+                "id": "主键 bigint",
+                "pt_id": "关联 bhis_pt_info.id",
+                "visit_id": "就诊ID（关联 service_record.id）",
+                "org_id": "机构",
+                "reg_source": "登记来源（smallint）",
+                "name": "诊断名称",
+                "code_category": "编码类别",
+                "code": "诊断代码",
+                "extra_code": "附加编码",
+                "symptom_code": "症状代码",
+                "symptom_name": "症状名称",
+                "discovery_time": "发现时间",
+                "discovery_dr_id": "发现医生ID",
+                "discovery_dr": "发现医生",
+                "is_solve": "是否解决（smallint，默认0）",
+                "process_result": "处理结果",
+                "process_time": "处理时间",
+                "process_dr_id": "处理医生ID",
+                "process_dr": "处理医生",
+                "record_prop": "记录性质（smallint）",
+                "sno": "排序号",
+                "discharge_condition": "出院情况",
+                "is_suspect": "是否疑似（smallint，默认0）",
+                "is_untreated": "是否未处理（smallint，默认0）",
+                "description": "描述",
+                "create_time": "创建时间",
+                "update_time": "更新时间"
+              }
+            }
+          }
+        },
+        "既往史": {
+          "tables": {
+            "pt_past": {
+              "description": "患者既往史记录表（含既往病史、个人史、婚育史、家族史等，由 item_code 区分）",
+              "key_fields": ["pt_id", "service_id", "item_code", "sno"],
+              "columns_notes": {
+                "id": "主键 bigint",
+                "pt_id": "患者ID",
+                "service_id": "服务记录ID（关联 service_record.id）",
+                "item_code": "项目编码（关联 b_past_item_category.code，区分既往史/个人史/婚育史/家族史等）",
+                "item_name": "项目名称",
+                "observe_method": "观察方法",
+                "code_system": "编码系统",
+                "sno": "序号",
+                "result_value": "结果值",
+                "result_code": "结果编码",
+                "org_name": "机构名称",
+                "start_time": "开始时间",
+                "end_time": "结束时间",
+                "update_time": "更新时间",
+                "description": "描述"
+              },
+              "indexes": {
+                "uq_pt_past$record_no": "UNIQUE (pt_id, service_id, item_code, sno)"
+              }
+            }
+          }
+        },
+        "患者状态与变更": {
+          "tables": {
+            "pt_status": {
+              "description": "患者状态（预交金余额、费用余额）",
+              "key_fields": ["pt_id"],
+              "columns_notes": {
+                "pt_id": "主键，关联 bhis_pt_info.id",
+                "prepay_balance": "预交金余额",
+                "fee_balance": "费用余额",
+                "update_time": "更新时间"
+              }
+            },
+            "pt_info_change": {
+              "description": "患者信息变更记录",
+              "key_fields": ["pt_id"],
+              "columns_notes": {
+                "id": "主键（自增序列）",
+                "pt_id": "关联 bhis_pt_info.id",
+                "source": "变更来源（smallint）",
+                "description": "变更描述",
+                "org_id": "机构",
+                "changer_id": "变更人ID",
+                "changer": "变更人",
+                "change_info": "变更内容（JSON）",
+                "update_time": "更新时间",
+                "dept_id": "科室"
+              }
+            },
+            "pt_archive_modify": {
+              "description": "患者档案修改审核记录",
+              "key_fields": ["pt_id"],
+              "columns_notes": {
+                "id": "主键 bigint",
+                "pt_id": "关联 bhis_pt_info.id",
+                "modifier_id": "修改人ID",
+                "modifier": "修改人",
+                "modify_dept_id": "修改科室",
+                "modify_org_id": "修改机构",
+                "modify_detail": "修改详情（JSON）",
+                "title": "标题",
+                "description": "描述",
+                "update_time": "更新时间"
+              }
+            },
+            "pt_archive_modify_involve": {
+              "description": "档案修改涉及表（关联 pt_archive_modify.id）"
+            },
+            "pt_card_change": {
+              "description": "患者卡变更记录"
+            },
+            "pt_merge_vs": {
+              "description": "患者合并记录（主索引合并）"
+            },
+            "pt_misconduct": {
+              "description": "患者不良行为记录"
+            },
+            "pt_photo": {
+              "description": "患者照片"
+            },
+            "pt_tag": {
+              "description": "患者标签定义"
+            },
+            "pt_tag_vs": {
+              "description": "患者标签关联（pt_id 关联 bhis_pt_info.id）"
+            },
+            "pt_warn": {
+              "description": "患者预警/警告"
+            }
+          }
+        },
+        "感染相关": {
+          "tables": {
+            "infection_card": {
+              "description": "传染病报告卡"
+            },
+            "infection_classification": {
+              "description": "传染病分类"
+            },
+            "infection_decision_rule": {
+              "description": "传染病判定规则"
+            },
+            "infection_disease_vs": {
+              "description": "传染病关联"
+            },
+            "infection_lab": {
+              "description": "传染病检验关联"
+            },
+            "infection_pacs": {
+              "description": "传染病检查关联"
+            },
+            "infection_report": {
+              "description": "传染病报告"
+            },
+            "infection_report_oper_log": {
+              "description": "传染病报告操作日志"
+            },
+            "infection_report_wait": {
+              "description": "传染病待报"
+            },
+            "infection_aduit_dept": {
+              "description": "传染病审核科室（拼写：audit→aduit）"
+            }
+          }
+        },
+        "服务记录与卡管理": {
+          "tables": {
+            "service_record": {
+              "description": "服务记录（就诊登记的主表，pt_diagnosis 和 pt_past 通过 visit_id/service_id 关联此表）"
+            },
+            "service_item": {
+              "description": "服务项目"
+            },
+            "read_card_config": {
+              "description": "读卡配置"
+            },
+            "rc_card_manage": {
+              "description": "卡管理"
+            },
+            "rc_disease_vs": {
+              "description": "读卡疾病关联"
+            },
+            "rc_fill_record": {
+              "description": "卡填写记录"
+            },
+            "fill_card_rule": {
+              "description": "填卡规则"
+            },
+            "decision_rule": {
+              "description": "判定规则"
+            },
+            "trans_process": {
+              "description": "事务处理"
+            }
+          }
+        }
+      }
+    },
+    "uas": {
+      "description": "预约排班",
+      "modules": {
+        "预约排班": {
+          "tables": {
+            "appt_schedule": {
+              "description": "预约排班表"
+            },
+            "appt_schedule_group": {
+              "description": "排班组"
+            },
+            "appt_schedule_interval": {
+              "description": "排班时段间隔"
+            },
+            "appt_schedule_period": {
+              "description": "排班时段"
+            },
+            "appt_schedule_recipient": {
+              "description": "排班接收者"
+            },
+            "appt_schedule_shift": {
+              "description": "排班班次"
+            },
+            "schedule_business": {
+              "description": "排班业务"
+            },
+            "unified_appt_record": {
+              "description": "统一预约记录"
+            }
+          }
+        }
+      }
+    }
+  },
+  "field_conventions": {
+    "id": "主键统一使用 UUID (varchar 36)",
+    "pt_id": "患者ID，关联 qw_base.bhis_pt_info.id",
+    "org_id": "机构编码 (varchar 36)",
+    "visit_id": "就诊ID（跨域关联键，对应服务记录）",
+    "status": "状态字段多使用 smallint"
+  },
+  "cross_domain_relations": {
+    "visit_id": "与 inp.public.inp_visit.visit_id、outpatient.public.outp_visit.visit_id、fee 域各结算表关联。在 patient 域中 visit_id 对应 service_record.id",
+    "patient_id / pt_id": "对应 qw_base.bhis_pt_info.id，是患者域的主键标识，其他域通过此ID引用患者"
+  },
+  "notes": {
+    "blood_type": "bhis_pt_info 无直接血型字段。extra_info（json 类型）经验证不存储血型数据。patient 域无专用血型关联表（pt_blood_type 等均不存在）。血型字典在 qw_base.b_abo（ABO）和 qw_base.b_rh（Rh）中。b_past_item_category 定义了 ABO 血型(code=01, is_unique=1) 和 RH 血型(code=02, is_unique=1) 类别，理论上血型可通过 pt_past 表以 item_code='01'/'02' 存储，但当前数据未见实际使用。血型实际存储位置可能在 emr 域的既往史/体征表或检验域中",
+    "past_history": "既往史、个人史、婚育史、家族史统一存储在 pt_past 表中，由 item_code（关联 b_past_item_category.code）区分类别",
+    "qw_base_note": "patient 域的 qw_base 与其它域不同——它存储的是患者核心数据主表（bhis_pt_info），而非纯字典同步副本。字典表（b_sex、b_abo 等）也在此 schema 下共存",
+    "empoy_adderss": "bhis_pt_info 字段 employ_adderss 拼写如此（adderss 少一个 d ），不是笔误，查询时保持原拼写"
+  }
+}

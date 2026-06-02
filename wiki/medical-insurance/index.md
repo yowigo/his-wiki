@@ -12,6 +12,10 @@
 - [IInsureInterface 接口契约](iinsure-interface.md) — 54 个方法完整清单、入参出参格式、CA 签名接口
 - [CA 签名模块](ca-signature.md) — HIS5.0 新增双插件体系、`I_CAInterface` 6 个方法
 
+### 铁则
+
+- [🚨 结算误差费铁则](settlement-error-check.md) — 所有结算流程必须校验 `|HIS总费用 - 医保总费用| > 0.1元`，超标即拦截；正式结算须配套撤销
+
 ### 业务流程
 
 - [门诊结算完整流程](outpatient-flow.md) — 1101-1107 业务类型、全链路代码走查

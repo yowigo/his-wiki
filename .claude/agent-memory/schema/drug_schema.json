@@ -1,0 +1,685 @@
+{
+  "domain": "drug",
+  "domain_name": "药品域",
+  "database": "drug",
+  "schemas": {
+    "public": {
+      "description": "药品业务主表（库存、出入库、发药、采购等）",
+      "modules": {
+        "库存管理": {
+          "tables": {
+            "drug_stock": {
+              "description": "药品库存表（各库房实时库存）",
+              "key_fields": ["drug_id", "storehouse_id", "batch_no"],
+              "relations": {
+                "drug_id": "qw_base.b_drug.id"
+              }
+            },
+            "drug_stock_change": {
+              "description": "库存变动记录"
+            },
+            "drug_stock_backup": {
+              "description": "库存备份"
+            },
+            "drug_inventory": {
+              "description": "盘点单"
+            },
+            "drug_inventory_detail": {
+              "description": "盘点明细"
+            },
+            "drug_balance": {
+              "description": "期初/期末结存"
+            },
+            "drug_balance_detail": {
+              "description": "结存明细"
+            }
+          }
+        },
+        "出入库管理": {
+          "tables": {
+            "drug_io": {
+              "description": "药品出入库主表（含入库、出库、调拨等）",
+              "key_fields": ["io_id", "storehouse_id", "io_type", "io_date"]
+            },
+            "drug_io_detail": {
+              "description": "出入库明细",
+              "key_fields": ["io_id", "drug_id", "quantity", "price"]
+            },
+            "drug_apply": {
+              "description": "药品申领单"
+            },
+            "drug_apply_detail": {
+              "description": "申领明细"
+            },
+            "drug_receipt": {
+              "description": "药品收货单"
+            },
+            "drug_receipt_detail": {
+              "description": "收货明细"
+            },
+            "drug_purchase_plan": {
+              "description": "采购计划"
+            },
+            "drug_purchase_plan_detail": {
+              "description": "采购计划明细"
+            },
+            "drug_return": {
+              "description": "药品退货"
+            }
+          }
+        },
+        "发药管理": {
+          "tables": {
+            "drug_give": {
+              "description": "发药单主表"
+            },
+            "drug_give_detail": {
+              "description": "发药明细"
+            },
+            "drug_give_wait": {
+              "description": "待发药记录"
+            },
+            "drug_execution": {
+              "description": "药疗执行记录"
+            },
+            "drug_execution_log": {
+              "description": "执行日志"
+            },
+            "dispensing_window": {
+              "description": "发药窗口"
+            }
+          }
+        },
+        "药品养护与质量": {
+          "tables": {
+            "drug_conserve": {
+              "description": "药品养护记录"
+            },
+            "drug_conserve_detail": {
+              "description": "养护明细"
+            },
+            "drug_conserve_measures": {
+              "description": "养护措施"
+            },
+            "drug_conserve_quality": {
+              "description": "养护质量"
+            },
+            "drug_conserve_set": {
+              "description": "养护配置"
+            },
+            "drug_quality": {
+              "description": "药品质量记录"
+            }
+          }
+        },
+        "调价": {
+          "tables": {
+            "drug_adjust_price": {
+              "description": "药品调价记录"
+            }
+          }
+        },
+        "结算": {
+          "tables": {
+            "drug_settlement": {
+              "description": "药品结算单"
+            },
+            "drug_settlement_detail": {
+              "description": "结算明细"
+            }
+          }
+        },
+        "医保药品管理": {
+          "tables": {
+            "mc_check_accept": {
+              "description": "医保药品验收单"
+            },
+            "mc_check_accept_detail": {
+              "description": "验收明细"
+            },
+            "mc_purchase_apply": {
+              "description": "医保药品采购申请"
+            },
+            "mc_purchase_apply_detail": {
+              "description": "采购申请明细"
+            },
+            "mc_settlement": {
+              "description": "医保结算"
+            },
+            "mc_settlement_detail": {
+              "description": "医保结算明细"
+            },
+            "mc_transfer_application": {
+              "description": "调拨申请"
+            },
+            "mc_transfer_application_details": {
+              "description": "调拨申请明细"
+            },
+            "mc_use": {
+              "description": "医保药品使用"
+            },
+            "mc_use_detail": {
+              "description": "医保药品使用明细"
+            }
+          }
+        },
+        "处方点评": {
+          "tables": {
+            "prescription_review": {
+              "description": "处方点评主表"
+            },
+            "pr_review_project": {
+              "description": "点评项目"
+            },
+            "pr_review_project_type": {
+              "description": "点评项目类型"
+            },
+            "pr_irrational_problem": {
+              "description": "不合理问题"
+            },
+            "pr_sample_plan": {
+              "description": "抽样计划"
+            },
+            "pr_sample_plan_content": {
+              "description": "抽样内容"
+            },
+            "pr_sample_recipel": {
+              "description": "抽样处方"
+            },
+            "pr_sample_record": {
+              "description": "抽样记录"
+            },
+            "pr_appeal_record": {
+              "description": "申诉记录"
+            },
+            "pr_rule_compatibility_taboo": {
+              "description": "配伍禁忌规则"
+            },
+            "pr_rule_crowd_taboo": {
+              "description": "人群禁忌规则"
+            },
+            "pr_rule_dose_usage": {
+              "description": "剂量用法规则"
+            },
+            "pr_rule_irrational_detail": {
+              "description": "不合理规则明细"
+            },
+            "pr_rule_repeat": {
+              "description": "重复用药规则"
+            }
+          }
+        },
+        "其他辅助表": {
+          "tables": {
+            "drug_traceability_code": {
+              "description": "药品追溯码记录"
+            },
+            "drug_traceability_code_stock": {
+              "description": "追溯码库存关联"
+            },
+            "drug_storehouse_lock": {
+              "description": "库房锁定记录"
+            },
+            "drug_download_log": {
+              "description": "数据下载日志"
+            },
+            "data_syn": {
+              "description": "数据同步记录"
+            },
+            "trans_process": {
+              "description": "事务处理过程"
+            },
+            "match_result": {
+              "description": "对码/匹配结果"
+            },
+            "zl对码管理": {
+              "description": "对码管理表（中文名）"
+            },
+            "zl脚本内容": {
+              "description": "系统脚本内容（中文名）"
+            },
+            "zl脚本模块": {
+              "description": "系统脚本模块（中文名）"
+            },
+            "库存导入临时表": {
+              "description": "库存导入临时表（中文名）"
+            }
+          }
+        }
+      }
+    },
+    "qw_base": {
+      "description": "从上游同步的本地药品字典副本（核心数据源）",
+      "sync_tables": {
+        "b_drug": {
+          "description": "药品基础字典（核心表）—— 每种药品的一条记录，含规格、价格、批准文号、国药码等",
+          "key_fields": ["id", "code", "name", "variety_id", "status"],
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "code": "药品代码",
+            "name": "药品名称",
+            "strength": "规格（如 100*瓶、散药 1g）",
+            "brand_name": "商品名",
+            "english_name": "英文名",
+            "alias": "别名",
+            "py_code": "拼音码",
+            "wb_code": "五笔码",
+            "variety_id": "品种ID（FK → b_drug_variety）",
+            "category": "药品分类（1-西药 2-中成药 3-中药饮片 4-材料 5-制剂 7-其他等）",
+            "manufacturer": "生产厂商（名称，非ID）",
+            "sourceland": "产地",
+            "approval_no": "批准文号",
+            "country_code": "国家医保药品编码（国药码）",
+            "platform_code": "平台编码（省平台挂网编码）",
+            "platform_name": "平台名称",
+            "cost_price": "采购价",
+            "purchase_cost_price": "采购成本价",
+            "limit_price": "限价",
+            "unit": "基本单位",
+            "take_unit": "服用单位",
+            "outp_unit": "门诊发药单位",
+            "outp_unit_coefficient": "门诊转换系数",
+            "inp_unit": "住院发药单位",
+            "inp_unit_coefficient": "住院转换系数",
+            "purchase_unit": "采购单位",
+            "purchase_unit_coefficient": "采购转换系数",
+            "min_pack_unit_coefficient": "最小包装单位转换系数（转换比）",
+            "ddd": "限定日剂量 DDD",
+            "ddd_unit_coefficient": "DDD 单位系数",
+            "dosage_coefficient": "剂量系数",
+            "essential_drugs_code": "基药编码",
+            "essential_drugs_class": "基药分类",
+            "add_rate": "加价率",
+            "price_level": "价格级别",
+            "source": "药品来源",
+            "fee_type": "收费类别",
+            "fee_type_code": "收费类别代码",
+            "tcm_type": "中药类型",
+            "service_object": "服务对象",
+            "batch_no": "批号",
+            "is_gmp": "是否 GMP 认证",
+            "status": "状态（1-正常 0-停用）",
+            "is_traceability": "是否追溯",
+            "tax_rate": "税率",
+            "tax_code": "税收编码",
+            "apply_range": "适用范围",
+            "org_id": "机构ID",
+            "ypid": "药品ID（YPID）",
+            "bidder_no": "投标人编号",
+            "purchase_method": "采购方式",
+            "volume": "体积",
+            "is_subpackage": "是否可分包",
+            "is_bulk": "是否大宗药品",
+            "traceability_code_prefix": "追溯码前缀",
+            "traceability_code_unit": "追溯码单位",
+            "traceability_code_length": "追溯码长度",
+            "is_dispensing_drug": "是否调配药品",
+            "max_expiry": "最大有效期（月）",
+            "conserve_period": "养护周期（月）",
+            "standard_code": "标准编码",
+            "identifier": "标识号",
+            "production_date": "生产日期",
+            "supplier": "供应商"
+          },
+          "relations": {
+            "variety_id": "b_drug_variety.id",
+            "drug_id": "bhis_drug_price.drug_id, bhis_drug_approval_no.drug_id, bhis_drug_limit.drug_id, b_drug_winner.drug_id, drug_stock.drug_id"
+          }
+        },
+        "b_drug_variety": {
+          "description": "药品品种表 —— 通用名层级，一个品种对应多个 drug（不同厂家/规格）",
+          "key_fields": ["id", "code", "name", "class_id", "form"],
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "code": "品种编码",
+            "name": "品种名称（通用名）",
+            "category": "分类（同 b_drug.category）",
+            "class_id": "药品分类ID（FK → b_drug_class）",
+            "form": "剂型编码（FK → b_drug_form.code）",
+            "dosage_unit": "剂量单位",
+            "toxicology_class": "毒理分类",
+            "value_class": "价值分类",
+            "anti_type": "抗菌药类型（1-非限制 2-限制 3-特殊使用 0-非抗菌药）",
+            "is_hormone": "是否激素",
+            "is_skin_test": "是否皮试",
+            "is_first_aid": "是否急救",
+            "is_new_drug": "是否新药",
+            "is_no_bulk": "是否不拆分",
+            "is_package": "是否包装",
+            "is_avoid_decoct": "是否免煎",
+            "is_prescription": "是否处方药",
+            "is_generics": "是否仿制药",
+            "is_import_original": "是否原研进口",
+            "is_infusion": "是否输液",
+            "is_radioactive_drug": "是否放射性药品",
+            "high_caution": "高危药品分类",
+            "oncology_drug_category": "肿瘤药品分类",
+            "recipe_grade": "处方等级",
+            "insurance_grade": "医保等级",
+            "recipe_limit": "处方限量",
+            "use_limit": "使用限量",
+            "limit_cycle": "限用周期",
+            "service_object": "服务对象",
+            "sex": "适用性别",
+            "py_code": "拼音码",
+            "wb_code": "五笔码",
+            "status": "状态（1-正常 0-停用）",
+            "apply_range": "适用范围",
+            "org_id": "机构ID"
+          },
+          "relations": {
+            "class_id": "b_drug_class.id",
+            "id": "b_drug.variety_id"
+          }
+        },
+        "b_drug_class": {
+          "description": "药品分类字典（树形，通过 parent_id 实现层级）",
+          "key_fields": ["id", "code", "name", "parent_id", "category"],
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "parent_id": "父分类ID",
+            "code": "分类编码（如 030104 表示碳青霉烯类）",
+            "name": "分类名称",
+            "py_code": "拼音码",
+            "category": "分类类别（5-药品等）"
+          }
+        },
+        "b_drug_form": {
+          "description": "药品剂型字典",
+          "key_fields": ["code", "name"],
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "code": "剂型编码（如 51-雾化剂, 52-胶丸剂, 170000-注射用无菌粉末）",
+            "name": "剂型名称",
+            "py_code": "拼音码",
+            "status": "状态"
+          }
+        },
+        "b_drug_manufacturer": {
+          "description": "药品生产企业字典",
+          "key_fields": ["id", "name", "code"],
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "name": "企业名称",
+            "code": "企业编码",
+            "py_code": "拼音码",
+            "region": "地区",
+            "permit_no": "许可证号",
+            "permit_expiry_date": "许可证到期日",
+            "platform_code": "平台编码",
+            "platform_name": "平台名称",
+            "type": "类型（1-生产企业 2-经销企业等）"
+          }
+        },
+        "b_drug_winner": {
+          "description": "药品中标/挂网信息（关联药品与供应商）",
+          "key_fields": ["drug_id", "supplier_id", "winner_no"],
+          "relations": {
+            "drug_id": "b_drug.id",
+            "supplier_id": "b_supplier.id"
+          }
+        },
+        "b_drug_source": {
+          "description": "药品来源字典",
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "code": "来源编码",
+            "name": "来源名称"
+          }
+        },
+        "b_drug_price_level": {
+          "description": "药品价格级别字典",
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "code": "价格级别编码",
+            "name": "价格级别名称"
+          }
+        },
+        "b_drug_toxicology_class": {
+          "description": "药品毒理分类字典（麻/毒/精/放等管制分类）",
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "code": "毒理编码",
+            "name": "毒理名称"
+          }
+        },
+        "b_drug_value_class": {
+          "description": "药品价值分类字典"
+        },
+        "b_essential_drugs_class": {
+          "description": "国家基本药物分类字典",
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "code": "基药分类编码",
+            "name": "基药分类名称"
+          }
+        },
+        "b_drug_combination_group": {
+          "description": "药品配伍禁忌分组",
+          "key_fields": ["id", "name", "prop"]
+        },
+        "b_drug_combination_item": {
+          "description": "药品配伍禁忌分组明细",
+          "key_fields": ["drug_id", "group_id"],
+          "relations": {
+            "drug_id": "b_drug.id",
+            "group_id": "b_drug_combination_group.id"
+          }
+        },
+        "b_drug_give_scheme": {
+          "description": "药品给药方案/用法字典",
+          "key_fields": ["id", "name", "method", "send_drug_type"],
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "name": "用法名称",
+            "py_code": "拼音码",
+            "method": "给药方法",
+            "method_class": "方法分类",
+            "send_drug_type": "发药类型",
+            "order_prop": "医嘱属性",
+            "place_dept_class": "执行科室分类",
+            "infusion": "是否输液",
+            "toxicology_class": "毒理分类",
+            "subpackage_code": "分包编码"
+          }
+        },
+        "b_supplier": {
+          "description": "供应商字典",
+          "key_fields": ["id", "code", "name"],
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "code": "供应商编码",
+            "name": "供应商名称",
+            "py_code": "拼音码",
+            "permit_no": "经营许可证号",
+            "license_no": "营业执照号",
+            "tax_no": "税号",
+            "bank": "开户行",
+            "account": "账号",
+            "contacts": "联系人",
+            "mobile": "联系电话",
+            "category": "供应商类别",
+            "org_id": "机构ID"
+          }
+        },
+        "bhis_drug_price": {
+          "description": "药品价格记录（带有效期，支持多版本价格）",
+          "key_fields": ["drug_id", "now_price", "exec_time", "abort_time"],
+          "key_fields_detail": {
+            "id": "主键 UUID",
+            "drug_id": "药品ID",
+            "now_price": "现价（销售价）",
+            "default_price": "默认价",
+            "history_price": "原价",
+            "purchase_price": "采购价",
+            "cost_price": "成本价",
+            "history_cost_price": "原成本价",
+            "min_price": "最低价",
+            "max_price": "最高价",
+            "reason": "调价原因",
+            "exec_time": "生效时间",
+            "abort_time": "失效时间",
+            "income_item_id": "收费项目ID",
+            "overtime_price_rate": "加班费率",
+            "sub_fee_rate": "附加费率"
+          }
+        },
+        "bhis_drug_approval_no": {
+          "description": "药品批准文号关联表（药品-生产企业-批准文号）",
+          "key_fields": ["drug_id", "manufacturer_id", "approval_no"],
+          "relations": {
+            "drug_id": "b_drug.id"
+          }
+        },
+        "bhis_drug_limit": {
+          "description": "药品库存上下限设置",
+          "key_fields": ["drug_id", "storehouse_id", "min", "max"],
+          "relations": {
+            "drug_id": "b_drug.id"
+          }
+        },
+        "bhis_drug_org": {
+          "description": "药品机构关联表（药品在哪些机构可用）",
+          "key_fields": ["drug_id", "org_id"]
+        },
+        "bhis_drug_variety_org": {
+          "description": "药品品种机构关联表",
+          "key_fields": ["variety_id", "org_id"],
+          "relations": {
+            "variety_id": "b_drug_variety.id"
+          }
+        },
+        "bhis_drug_allocation": {
+          "description": "药品调拨目录/分配路径",
+          "key_fields": ["id", "name", "storehouse_id", "org_id"]
+        },
+        "bhis_drug_form_clin": {
+          "description": "临床剂型字典（qwbhis 扩展表）",
+          "key_fields_detail": {}
+        },
+        "b_clin_item": {
+          "description": "临床项目字典（非药品的诊疗项目）",
+          "key_fields": ["id", "code", "name", "class_id", "category"]
+        },
+        "b_clin_item_class": {
+          "description": "临床项目分类字典"
+        },
+        "b_income_item": {
+          "description": "收入项目字典"
+        },
+        "b_income_item_class": {
+          "description": "收入项目分类字典"
+        },
+        "b_dept": {
+          "description": "科室字典（同步副本）"
+        },
+        "b_staff": {
+          "description": "人员字典（同步副本）"
+        },
+        "b_org": {
+          "description": "机构字典（同步副本）"
+        },
+        "b_hvc_class": {
+          "description": "高值耗材分类字典"
+        },
+        "b_damage_reason": {
+          "description": "破损原因字典"
+        },
+        "b_damage_solve": {
+          "description": "破损处理方式字典"
+        },
+        "b_drug_other_business_in": {
+          "description": "其他业务入库类型字典"
+        },
+        "b_drug_other_business_out": {
+          "description": "其他业务出库类型字典"
+        },
+        "b_manufacturer_attachment": {
+          "description": "生产企业附件/证照"
+        },
+        "b_supplier_attachment": {
+          "description": "供应商附件/证照"
+        },
+        "bhis_supplier_org": {
+          "description": "供应商机构关联"
+        },
+        "b_mc_peculiarity": {
+          "description": "医保药品特例/特殊性配置"
+        }
+      }
+    },
+    "pass": {
+      "description": "合理用药/处方审核（PASS）相关",
+      "modules": {
+        "合理用药": {
+          "tables": {
+            "hospital_drug_dict": {
+              "description": "医院药品字典（PASS 专用，含处方审核所需的药品映射信息）",
+              "key_fields": ["hospital_drug_id", "drug_name", "yp_id"],
+              "key_fields_detail": {
+                "hospital_drug_id": "医院药品ID",
+                "drug_name": "药品名称",
+                "register_name": "注册名称",
+                "trade_name": "商品名",
+                "approval_no": "批准文号",
+                "yp_id": "YPID（关联主系统药品ID）",
+                "medical_code": "医保编码",
+                "drug_form": "剂型",
+                "spec": "规格",
+                "dose_unit": "剂量单位",
+                "pack_min_unit": "最小包装单位",
+                "pack_price_unit": "包装价格单位",
+                "manufacturer": "生产厂商",
+                "pinyin_code": "拼音码",
+                "drug_master_id": "药品主数据ID"
+              }
+            },
+            "prescription_alert": {
+              "description": "处方审核预警结果"
+            },
+            "alert_rate_log": {
+              "description": "预警率日志"
+            },
+            "shadow_alert": {
+              "description": "影子/备胎预警"
+            },
+            "drug_check_log": {
+              "description": "药品审核日志"
+            },
+            "pass_system_config": {
+              "description": "PASS 系统配置"
+            },
+            "rule_keys": {
+              "description": "审核规则键定义"
+            },
+            "rule_package": {
+              "description": "审核规则包"
+            }
+          }
+        }
+      }
+    },
+    "fdwpat": {
+      "description": "外部数据封装（Foreign Data Wrapper，从其他域同步的患者/门诊等数据）",
+      "modules": {}
+    }
+  },
+  "field_conventions": {
+    "id": "UUID 格式主键（36位）",
+    "org_id": "机构ID，用于多机构隔离",
+    "revoke_time": "逻辑删除时间戳（'3000-01-01'为有效记录）",
+    "status": "通用状态（1-正常/启用，0-停用/禁用）",
+    "py_code": "拼音码（首字母）",
+    "wb_code": "五笔码",
+    "apply_range": "适用范围（如 1-门诊, 2-住院, 3-全部等）",
+    "variety_id": "品种ID，链接 b_drug_variety（通用名层级）",
+    "drug_id": "药品ID，主键为 b_drug.id",
+    "abort_time": "记录失效时间（'infinity'或'3000-01-01'为仍有效）",
+    "exec_time": "生效时间"
+  },
+  "cross_domain_relations": {
+    "drug.code": "与 outpatient 或 inp 域的医嘱/处方通过 drug_code 关联",
+    "drug.ypid": "HIS 系统内跨域识别的药品标识，与 fee 域收费项目映射",
+    "b_drug_variety.anti_type": "抗菌药分类（用于处方点评、抗菌药管控）"
+  }
+}

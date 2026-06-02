@@ -81,7 +81,10 @@ his-wiki/
 └── raw/                         # 原始资料层（只增不改）
     ├── HIS接口文档1.0/          # 飞跃智慧系统标准化接口（15份docx）
     ├── 医保开发/                # 医保开发原始资料
-    └── skills技能/              # gstack 技能手册
+    ├── SunnyUI文档/             # SunnyUI 控件库原始文档（V3.9.7）
+    └── skills技能/              # 技能手册 + 团队自研 skill
+        ├── gstack技能手册.md     #   gstack 内置技能说明
+        └── sunnyui/             #   团队自研：SunnyUI 开发护栏 skill
 ```
 
 ---
@@ -196,14 +199,26 @@ his-wiki/
 - [SunnyUI 主题系统](winforms-ui/sunnyui/入门/主题.md) — Style/StyleCustomMode 必读
 - [SunnyUI 常见问题](winforms-ui/sunnyui/入门/常见问题.md) — 17 个高频踩坑
 
+### 团队 Skill（AI 开发护栏）
+
+> 这些 skill 是给 **Claude Code** 加载的 AI 行为规范，需要拷贝到本机 `~/.claude/skills/` 才能生效。源仓库在 `raw/skills技能/`，安装方式见各 skill 的 INSTALL.md。
+
+| Skill | 用途 | 源路径 |
+| --- | --- | --- |
+| `sunnyui` | SunnyUI WinForms 开发护栏：统一控件命名、AutoScaleMode、主题、字体、DPI、字体图标等团队约定 | [raw/skills技能/sunnyui/SKILL.md](../raw/skills技能/sunnyui/SKILL.md) ｜ [安装说明](../raw/skills技能/sunnyui/INSTALL.md) |
+
 ---
 
 ## 操作日志
+
+### 2026-05-26
+- 新增医保铁则：结算误差费校验（`settlement-error-check.md`）— 所有结算流程必须校验 `|HIS总费用 - 医保总费用| > 0.1元`，超标即拦截；正式结算须配套撤销
 
 ### 2026-05-21
 - 新增 WinForms UI 库子站：基于 raw/SunnyUI文档/ 整理 SunnyUI（V3.9.7 同步）AI 优先版 wiki 化文档 37 篇
 - 子站结构：入门 5 + 控件 21（20+索引） + 窗体 2 + 多页面框架 3 + 工具类库 3 + 升级指南 1 + 顶层 2
 - 风格：去图保表 + 全局陷阱前置 + 通用属性提取（不重复进每个控件页）
+- 新增团队自研 skill `sunnyui`（raw/skills技能/sunnyui/）：8 Steps 强制检查表 + 反问清单，约束 AI 写 SunnyUI 代码时的命名/主题/字体/DPI/字体图标风格一致性；同步配套 INSTALL.md
 
 ### 2026-04-28
 - 故障案例目录重组：troubleshooting/ 下按模块拆分子目录（inpatient/、medical-insurance/）
