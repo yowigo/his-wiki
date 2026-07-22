@@ -1,6 +1,6 @@
 # HIS 知识库
 
-**最后更新时间**: 2026-04-28
+**最后更新时间**: 2026-07-07
 **整理者**: Keiskei
 **知识库状态**: 持续完善中（医保文档已充实，HIS 标准化接口已入库）
 
@@ -30,6 +30,8 @@ his-wiki/
 │   │   ├── query-template.md          # 查询接口模板
 │   │   ├── third-party-integration.md # 第三方对接模板
 │   │   ├── insurance-plugin-template.md # 医保插件模板
+│   │   ├── isb-service-design.md          # ISB服务设计数据库操作
+│   │   ├── isb-signature-auth.md           # ISB接口签名认证
 │   │   ├── api-hl7-adt-a01.md         # HL7 ADT^A01
 │   │   ├── yhis-standard-api-overview.md  # HIS标准化接口总览
 │   │   ├── yhis-base-data.md              # 基础数据接口
@@ -73,6 +75,11 @@ his-wiki/
 │   ├── troubleshooting/         # 故障案例（按模块分子目录）
 │   │   ├── inpatient/           # 住院系统故障
 │   │   └── medical-insurance/   # 医保故障
+│   │
+│   ├── database-query/           # 数据库查询指南
+│   │   ├── fee_schema_guide.md    # fee 库快速导览
+│   │   ├── fee_schema.json        # fee 库结构化 schema
+│   │   └── fee_schema_ddl.sql     # fee 库完整 DDL dump
 │   │
 │   └── work-log/                # 工作日志
 │       ├── 2026-04-15-summary.md
@@ -139,6 +146,7 @@ his-wiki/
 | 医保开发 | 已完成 | 90% | 架构、接口、数据库、流程、通信、CA签名已整理 |
 | 标准化接口 | 进行中 | 40% | 总览、基础数据、挂号费用、医保集成已整理 |
 | 故障案例 | 进行中 | 30% | 按模块分子目录，已入库3个案例 |
+| 数据库查询 | 新建 | 5% | fee 库快速导览、结构化 schema、DDL dump |
 | 设计模式 | 进行中 | 50% | 医嘱状态机、GitHub备份经验已整理 |
 | WinForms UI 库 | 进行中 | 60% | SunnyUI 子站已收录 raw 子集：20 控件 + 2 窗体 + 多页框架 + 3 工具类（V3.9.7 同步） |
 
@@ -188,6 +196,12 @@ his-wiki/
 - [住院护士站打标后自动触发费用明细上传](troubleshooting/medical-insurance/issue-20260424-inpatient-nurse-fee-upload-after-item-marking.md)
 - [导入医保目录时 py_code 字段长度不足](troubleshooting/medical-insurance/issue-20260428-ins-item-py-code-too-long.md)
 
+**电子票据（electronic-invoice）**
+- [找不到 ElectronicInvoiceInterfaceDelaut.dll](troubleshooting/electronic-invoice/issue-electronicinvoiceinterfacedelaut-not-found.md)
+
+### 数据库查询
+- [fee 库快速导览](database-query/fee_schema_guide.md) — 核心链路、表卡、排查入口（配套 DDL + JSON schema 同目录）
+
 ### 设计模式
 - [医嘱状态机](patterns/pattern-order-lifecycle.md)
 - [GitHub备份经验教训](patterns/pattern-github-backup-lessons.md)
@@ -210,6 +224,11 @@ his-wiki/
 ---
 
 ## 操作日志
+
+### 2026-07-07
+- 新建数据库查询（database-query）分类：入库 fee 库快速导览、结构化 schema、完整 DDL dump
+- fee 库导览覆盖 6 个 schema（qw_base / public / pay / insur / schedule / misl）、核心链路（收费项目→费用明细→未结/结算→支付→医保→退费）、9 张核心表卡、前端入口反查
+- 结构化 schema 供 db-reader 子代理直接索引，DDL dump 为完整权威源
 
 ### 2026-05-26
 - 新增医保铁则：结算误差费校验（`settlement-error-check.md`）— 所有结算流程必须校验 `|HIS总费用 - 医保总费用| > 0.1元`，超标即拦截；正式结算须配套撤销
