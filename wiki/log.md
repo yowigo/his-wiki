@@ -11,8 +11,30 @@
 | 2026-04-24 | TROUBLESHOOTING | 1 | 完成 | Keiskei |
 | 2026-04-16 | INGEST | 17 | ✅ 完成 | 小柔助手 |
 | 2026-04-20 | LINT + INGEST | 3 | ✅ 完成 | keiskei |
+| 2026-07-22 | TOOL | 1 | ✅ 完成 | Keiskei |
+| 2026-08-25 | INGEST + TROUBLESHOOTING | 10 新页 + raw 补档 | ✅ 完成 | Keiskei |
 
 ## 📝 详细日志
+
+### 2026-08-25 README 规则变更与新 README 落盘
+
+- **规则变更**：AGENTS.md「文件操作限制」由「禁止新建/修改 README.md」改为「允许，但必须先与用户确认内容后再落盘」，变更记录写入本日志
+- **更新**：raw/README.md（目录结构/同步机制/状态表改为实际结构）、raw/外部接口开发/README.md（修正过时目录树，V1.0.5 改为 V1.0.6，补齐子目录）
+- **新建**：raw/外部接口开发/上海医保项目五期/README.md、raw/外部接口开发/广东深圳医保/README.md、raw/外部接口开发/北京电子票据/README.md、raw/对码管理/README.md
+- 以上内容均经用户确认后落盘
+
+### 2026-08-25 医保插件知识全量整理入库
+
+- **raw 补档**（只增不改）：
+  - `外部接口开发/上海医保项目五期/`：V1.0.6 通知 md/pdf、医保五期接口升级清单、医保五期文档差异分析、医保错误码处理手册 md/pdf、医院部署前置配置清单 md/pdf、医保自费分离结算改造方案、日对账记录查询功能说明、五期对账记录表结构.sql、结算对账使用手册、程序集依赖加载说明、问题分析与解决方案、AssemblyResolver故障排查、接口开发说明 v1.4/异地 V1.2 md+pdf、部署包目录结构、医保测试环境准备、部署 SQL 脚本
+  - `外部接口开发/广东深圳医保/`（新建）：接口规范 docx、市直医保接口改造-代码审计报告、落实清单、读卡就医传参指引、附件1-医疗机构接口改造指引 md+docx（未入库：测试医院账号信息，避免凭据进 GitHub）
+  - `外部接口开发/北京电子票据/`（新建）：接口规范 V1.28 md+docx、电子发票相关表结构、报文 0101/0103、实现摘要、快速参考、流程说明
+  - `对码管理/`：ins_item.sql、已对照目录不显示数据分析.md
+- **wiki 新建 10 篇**：
+  - `medical-insurance/`：shanghai-5th（上海五期插件总览）、error-code-handbook（错误码处理手册）、deployment-checklist（部署前置清单）、reconcile（日对账/结算对账）、self-pay-separation（自费分离改造）、assembly-loading（程序集依赖/反射加载）、guangdong-szsz（广东深圳市直医保）、coding-tool（对码工具）
+  - `api/electronic-invoice-plugin.md`（北京电子票据插件）
+  - `troubleshooting/medical-insurance/issue-20260824-traceability-duplicate-upload.md`（追溯码重复上传判重缺陷）
+- **wiki 更新**：traceability-code-upload（补判重章节）、medical-insurance/index、wiki/index（最后更新时间、进度、导航、操作日志）
 
 ### 2026-04-24 医保排查案例入库
 

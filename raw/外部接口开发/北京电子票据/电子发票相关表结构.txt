@@ -1,0 +1,391 @@
+
+CREATE TABLE public.pt_balance (
+	id int8 NOT NULL, -- id
+	org_id varchar(36) NOT NULL, -- 机构id
+	rec_prop int2 NOT NULL, -- 记录性质
+	rec_status int2 NOT NULL, -- 记录状态
+	"no" varchar(20) NOT NULL, -- 结帐单号
+	pt_id varchar(36) NOT NULL, -- 患者id
+	pt_name varchar(100) NULL, -- 姓名
+	pt_sex varchar(2) NULL, -- 性别编码
+	pt_age varchar(20) NULL, -- 年龄
+	pt_birthday timestamp NULL, -- 出生日期
+	id_card_no varchar(25) NULL, -- 身份证号
+	business_no varchar(20) NULL, -- 业务号码:门诊号;住院号;体检号;门特号
+	bed_no varchar(20) NULL, -- 床号
+	invoice_no json NULL, -- 发票号
+	invoice_qty int2 NULL, -- 发票数
+	fee_start_date timestamp(6) NULL, -- 费用开始日期
+	fee_end_date timestamp(6) NULL, -- 费用截止日期
+	inp_start_date timestamp(6) NULL, -- 住院开始日期
+	inp_end_date timestamp(6) NULL, -- 住院截止日期
+	operator_id varchar(36) NULL, -- 操作员id
+	operator_name varchar(60) NULL, -- 操作员名
+	operate_dept varchar(100) NULL, -- 操作部门名称
+	operate_dept_id varchar(36) NULL, -- 操作部门id
+	balance_time timestamp(6) NULL, -- 结算时间
+	visit_id varchar(36) NULL, -- 就诊id
+	print_times int2 NULL, -- 打印次数
+	data_source varchar(30) NULL, -- 结算数据来源:医院窗口/诊间支付/公众号/自助机/……
+	invoice_source int2 NULL, -- 发票来源
+	complement_prop int2 NULL, -- 补结性质:1-补充结算产生;2-已补充结算的原始记录;3-共济结算产生;4-已共济结算的原始记录
+	complement_id int8 NULL, -- 补结id：当补结性质=1,存已补充结算的原始ID; 补结性质=2,存补充结算新ID; 补结性质=3,存已共济结算的原始ID; 补结性质=4,存共济结算新ID;
+	ins_id int8 NULL, -- 保险系统
+	ins_name varchar(60) NULL, -- 保险名称
+	balance_status int2 NULL, -- 结算状态 0-正常 完成结算;1-异常 可能医保成功,本地未成功 ;2-医保部分退,全退成功,未进行重收
+	link_id int8 NULL, -- 相关id
+	description varchar(200) NULL, -- 说明
+	module_source int2 NULL, -- 内部模块来源:1-门诊医嘱(发送产生);2-住院费用(出院时产生);3-体检费用(发送时产生);4-挂号费用(划价);5-手工划价;6-飞跃;7-外部接口;8-门特费用
+	py_code varchar(100) NULL, -- 姓名拼音简码
+	discount_id varchar(36) NULL, -- 折扣id
+	discount_name varchar(50) NULL, -- 折扣名称
+	receivable_charge numeric(18, 5) NULL, -- 应收金额
+	actual_charge numeric(18, 5) NULL, -- 实收金额
+	pt_sex_name varchar(20) NULL, -- 性别名称
+	balance_type int2 NULL, -- 当为结账记录rec_prop=2时:结账类型:0-出院结账;1-中途结账
+	refund_times int2 NULL, -- 退费次数:用于记录患者的退费次,主要是记录门诊部分退费
+	balance_lot int8 NULL, -- 结算批次:用于门特循环一批结算,或后期体检批量结算
+	pdr_id varchar(36) NULL, -- 责任医师id
+	pdr_name varchar(60) NULL, -- 责任医师
+	dept_id varchar(36) NULL, -- 科室id
+	dept_name varchar(100) NULL, -- 科室名称
+	insurance_type_code varchar(20) NULL, -- 医保险种类型编码, 医保结算时由医保返回并保存
+	insurance_type_name varchar NULL, -- 医保险种类型名称, 医保结算时由医保返回并保存
+	is_body int2 DEFAULT 0 NULL, -- 是否躯体疾病结算: 0-原始就诊结算(精神疾病) 1-拆分就诊结算(躯体疾病)
+	english_name varchar(100) NULL, -- 患者英文名
+	pt_tag varchar(50) NULL, -- 患者个人标签
+	tel varchar(50) NULL, -- 联系电话
+	invoice_type int2 NULL, -- 发票类型, 当住院结账调用门诊收费票据打印时写入
+	CONSTRAINT pk_pt_balance PRIMARY KEY (id)
+);
+CREATE INDEX idx_pt_balance_operator ON public.pt_balance USING btree (org_id, operator_id) WHERE (operator_id IS NOT NULL);
+CREATE INDEX idx_pt_balance_org_recprop ON public.pt_balance USING btree (org_id, rec_prop, id);
+CREATE INDEX idx_pt_balance_rec_status ON public.pt_balance USING btree (org_id, no, rec_status);
+CREATE INDEX "ix_pt_balance$balance_lot" ON public.pt_balance USING btree (balance_lot);
+CREATE INDEX "ix_pt_balance$balance_time" ON public.pt_balance USING btree (balance_time, org_id);
+CREATE INDEX "ix_pt_balance$business_no" ON public.pt_balance USING btree (org_id, business_no);
+CREATE INDEX "ix_pt_balance$complement" ON public.pt_balance USING btree (complement_id);
+CREATE INDEX "ix_pt_balance$link" ON public.pt_balance USING btree (link_id);
+CREATE INDEX "ix_pt_balance$pt" ON public.pt_balance USING btree (pt_id);
+CREATE INDEX "ix_pt_balance$visit" ON public.pt_balance USING btree (visit_id);
+CREATE INDEX pt_balance_tel_idx ON public.pt_balance USING btree (tel);
+CREATE UNIQUE INDEX uq_pt_balance ON public.pt_balance USING btree (no, rec_status, link_id, org_id);
+COMMENT ON TABLE public.pt_balance IS '患者结算记录';
+
+CREATE TABLE public.pt_balance_detail (
+	id int8 NOT NULL, -- id
+	balance_id int8 NOT NULL, -- 结算记录id
+	balance_name varchar(50) NOT NULL, -- 结算方式
+	balance_charge numeric(18, 5) NULL, -- 结算金额，正式的结算金额小数位数为2位，误差费，小数位数较大
+	balance_interface varchar(50) NULL, -- 结算接口名称
+	balance_interface_no varchar(70) NULL, -- 结算接口号码
+	description varchar(1000) NULL, -- 说明
+	is_prepay int2 NULL, -- 是否预交抵扣
+	prepay_usage_id int8 NULL, -- 预交使用明细ID
+	balance_prop int2 NULL, -- 结算性质
+	CONSTRAINT pk_pt_balance_detail PRIMARY KEY (id),
+	CONSTRAINT "fk_balance_details$preapy_usa_id" FOREIGN KEY (prepay_usage_id) REFERENCES public.pt_prepay_usage_details(id),
+	CONSTRAINT "fk_pt_balance_detail$balance_id" FOREIGN KEY (balance_id) REFERENCES public.pt_balance(id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+CREATE INDEX idx_pt_balance_detail_balance ON public.pt_balance_detail USING btree (balance_id);
+CREATE INDEX "ix_pt_balance_detail$balance" ON public.pt_balance_detail USING btree (balance_id);
+CREATE INDEX "ix_pt_balance_detail$prepay_usa" ON public.pt_balance_detail USING btree (prepay_usage_id);
+CREATE UNIQUE INDEX uq_pt_balance_detail ON public.pt_balance_detail USING btree (balance_id, prepay_usage_id, balance_name);
+COMMENT ON TABLE public.pt_balance_detail IS '患者结算明细';
+
+-- Column comments
+
+COMMENT ON COLUMN public.pt_balance_detail.id IS 'id';
+COMMENT ON COLUMN public.pt_balance_detail.balance_id IS '结算记录id';
+COMMENT ON COLUMN public.pt_balance_detail.balance_name IS '结算方式';
+COMMENT ON COLUMN public.pt_balance_detail.balance_charge IS '结算金额，正式的结算金额小数位数为2位，误差费，小数位数较大';
+COMMENT ON COLUMN public.pt_balance_detail.balance_interface IS '结算接口名称';
+COMMENT ON COLUMN public.pt_balance_detail.balance_interface_no IS '结算接口号码';
+COMMENT ON COLUMN public.pt_balance_detail.description IS '说明';
+COMMENT ON COLUMN public.pt_balance_detail.is_prepay IS '是否预交抵扣';
+COMMENT ON COLUMN public.pt_balance_detail.prepay_usage_id IS '预交使用明细ID';
+COMMENT ON COLUMN public.pt_balance_detail.balance_prop IS '结算性质';
+
+-- Column comments
+
+COMMENT ON COLUMN public.pt_balance.id IS 'id';
+COMMENT ON COLUMN public.pt_balance.org_id IS '机构id';
+COMMENT ON COLUMN public.pt_balance.rec_prop IS '记录性质';
+COMMENT ON COLUMN public.pt_balance.rec_status IS '记录状态';
+COMMENT ON COLUMN public.pt_balance."no" IS '结帐单号';
+COMMENT ON COLUMN public.pt_balance.pt_id IS '患者id';
+COMMENT ON COLUMN public.pt_balance.pt_name IS '姓名';
+COMMENT ON COLUMN public.pt_balance.pt_sex IS '性别编码';
+COMMENT ON COLUMN public.pt_balance.pt_age IS '年龄';
+COMMENT ON COLUMN public.pt_balance.pt_birthday IS '出生日期';
+COMMENT ON COLUMN public.pt_balance.id_card_no IS '身份证号';
+COMMENT ON COLUMN public.pt_balance.business_no IS '业务号码:门诊号;住院号;体检号;门特号';
+COMMENT ON COLUMN public.pt_balance.bed_no IS '床号';
+COMMENT ON COLUMN public.pt_balance.invoice_no IS '发票号';
+COMMENT ON COLUMN public.pt_balance.invoice_qty IS '发票数';
+COMMENT ON COLUMN public.pt_balance.fee_start_date IS '费用开始日期';
+COMMENT ON COLUMN public.pt_balance.fee_end_date IS '费用截止日期';
+COMMENT ON COLUMN public.pt_balance.inp_start_date IS '住院开始日期';
+COMMENT ON COLUMN public.pt_balance.inp_end_date IS '住院截止日期';
+COMMENT ON COLUMN public.pt_balance.operator_id IS '操作员id';
+COMMENT ON COLUMN public.pt_balance.operator_name IS '操作员名';
+COMMENT ON COLUMN public.pt_balance.operate_dept IS '操作部门名称';
+COMMENT ON COLUMN public.pt_balance.operate_dept_id IS '操作部门id';
+COMMENT ON COLUMN public.pt_balance.balance_time IS '结算时间';
+COMMENT ON COLUMN public.pt_balance.visit_id IS '就诊id';
+COMMENT ON COLUMN public.pt_balance.print_times IS '打印次数';
+COMMENT ON COLUMN public.pt_balance.data_source IS '结算数据来源:医院窗口/诊间支付/公众号/自助机/……';
+COMMENT ON COLUMN public.pt_balance.invoice_source IS '发票来源';
+COMMENT ON COLUMN public.pt_balance.complement_prop IS '补结性质:1-补充结算产生;2-已补充结算的原始记录;3-共济结算产生;4-已共济结算的原始记录';
+COMMENT ON COLUMN public.pt_balance.complement_id IS '补结id：当补结性质=1,存已补充结算的原始ID; 补结性质=2,存补充结算新ID; 补结性质=3,存已共济结算的原始ID; 补结性质=4,存共济结算新ID;';
+COMMENT ON COLUMN public.pt_balance.ins_id IS '保险系统';
+COMMENT ON COLUMN public.pt_balance.ins_name IS '保险名称';
+COMMENT ON COLUMN public.pt_balance.balance_status IS '结算状态 0-正常 完成结算;1-异常 可能医保成功,本地未成功 ;2-医保部分退,全退成功,未进行重收';
+COMMENT ON COLUMN public.pt_balance.link_id IS '相关id';
+COMMENT ON COLUMN public.pt_balance.description IS '说明';
+COMMENT ON COLUMN public.pt_balance.module_source IS '内部模块来源:1-门诊医嘱(发送产生);2-住院费用(出院时产生);3-体检费用(发送时产生);4-挂号费用(划价);5-手工划价;6-飞跃;7-外部接口;8-门特费用';
+COMMENT ON COLUMN public.pt_balance.py_code IS '姓名拼音简码';
+COMMENT ON COLUMN public.pt_balance.discount_id IS '折扣id';
+COMMENT ON COLUMN public.pt_balance.discount_name IS '折扣名称';
+COMMENT ON COLUMN public.pt_balance.receivable_charge IS '应收金额';
+COMMENT ON COLUMN public.pt_balance.actual_charge IS '实收金额';
+COMMENT ON COLUMN public.pt_balance.pt_sex_name IS '性别名称';
+COMMENT ON COLUMN public.pt_balance.balance_type IS '当为结账记录rec_prop=2时:结账类型:0-出院结账;1-中途结账';
+COMMENT ON COLUMN public.pt_balance.refund_times IS '退费次数:用于记录患者的退费次,主要是记录门诊部分退费';
+COMMENT ON COLUMN public.pt_balance.balance_lot IS '结算批次:用于门特循环一批结算,或后期体检批量结算';
+COMMENT ON COLUMN public.pt_balance.pdr_id IS '责任医师id';
+COMMENT ON COLUMN public.pt_balance.pdr_name IS '责任医师';
+COMMENT ON COLUMN public.pt_balance.dept_id IS '科室id';
+COMMENT ON COLUMN public.pt_balance.dept_name IS '科室名称';
+COMMENT ON COLUMN public.pt_balance.insurance_type_code IS '医保险种类型编码, 医保结算时由医保返回并保存';
+COMMENT ON COLUMN public.pt_balance.insurance_type_name IS '医保险种类型名称, 医保结算时由医保返回并保存';
+COMMENT ON COLUMN public.pt_balance.is_body IS '是否躯体疾病结算: 0-原始就诊结算(精神疾病) 1-拆分就诊结算(躯体疾病)';
+COMMENT ON COLUMN public.pt_balance.english_name IS '患者英文名';
+COMMENT ON COLUMN public.pt_balance.pt_tag IS '患者个人标签';
+COMMENT ON COLUMN public.pt_balance.tel IS '联系电话';
+COMMENT ON COLUMN public.pt_balance.invoice_type IS '发票类型, 当住院结账调用门诊收费票据打印时写入';
+
+CREATE TABLE insur.nn_invoiceinfo (
+	balance_id int8 NOT NULL, -- 结帐ID
+	invoiceserialnum varchar(50) NULL, -- 发票流水号
+	"type" varchar(20) NULL, -- 开票类型
+	status varchar(2) NULL, -- 开票状态：0-失败 1-成功
+	count varchar(10) NULL, -- 开票次数
+	CONSTRAINT pk_nn_invoiceinfo PRIMARY KEY (balance_id)
+);
+COMMENT ON TABLE insur.nn_invoiceinfo IS '自定义_诺诺开票信息表';
+
+-- Column comments
+
+COMMENT ON COLUMN insur.nn_invoiceinfo.balance_id IS '结帐ID';
+COMMENT ON COLUMN insur.nn_invoiceinfo.invoiceserialnum IS '发票流水号';
+COMMENT ON COLUMN insur.nn_invoiceinfo."type" IS '开票类型';
+COMMENT ON COLUMN insur.nn_invoiceinfo.status IS '开票状态：0-失败 1-成功';
+COMMENT ON COLUMN insur.nn_invoiceinfo.count IS '开票次数';
+
+
+CREATE TABLE insur.nn_invoiceinit (
+	ptype varchar(50) NOT NULL, -- 发票类型
+	pname varchar(100) NOT NULL, -- 参数名
+	pvalue varchar(200) NOT NULL, -- 参数值
+	pexplanation varchar(1000) NULL, -- 说明
+	CONSTRAINT pk_nn_invoiceinit PRIMARY KEY (ptype, pname, pvalue)
+);
+COMMENT ON TABLE insur.nn_invoiceinit IS '自定义_诺诺开票参数表';
+
+-- Column comments
+
+COMMENT ON COLUMN insur.nn_invoiceinit.ptype IS '发票类型';
+COMMENT ON COLUMN insur.nn_invoiceinit.pname IS '参数名';
+COMMENT ON COLUMN insur.nn_invoiceinit.pvalue IS '参数值';
+COMMENT ON COLUMN insur.nn_invoiceinit.pexplanation IS '说明';
+
+
+CREATE TABLE insur.nn_invoiceredconfirm (
+	balance_id int8 NOT NULL, -- 结帐ID
+	refund_id int8 NOT NULL, -- 冲销ID
+	billid varchar(50) NOT NULL, -- 红字确认单申请号
+	issave int2 NULL, -- 是否保存结果：1-是 0-否
+	CONSTRAINT pk_nn_invoiceredconfirm PRIMARY KEY (balance_id, refund_id, billid)
+);
+COMMENT ON TABLE insur.nn_invoiceredconfirm IS '自定义_诺诺红字申请表';
+
+-- Column comments
+
+COMMENT ON COLUMN insur.nn_invoiceredconfirm.balance_id IS '结帐ID';
+COMMENT ON COLUMN insur.nn_invoiceredconfirm.refund_id IS '冲销ID';
+COMMENT ON COLUMN insur.nn_invoiceredconfirm.billid IS '红字确认单申请号';
+COMMENT ON COLUMN insur.nn_invoiceredconfirm.issave IS '是否保存结果：1-是 0-否';
+
+
+CREATE TABLE insur.nn_invoiceresult (
+	balance_id int8 NOT NULL, -- 结账ID
+	serialno varchar(50) NOT NULL, -- 发票请求流水号
+	orderno varchar(50) NOT NULL, -- 订单编号
+	status varchar(2) NULL, -- 发票状态
+	statusmsg varchar(200) NULL, -- 发票状态描述
+	failcause varchar(2000) NULL, -- 失败原因
+	pdfurl varchar(500) NULL, -- 发票pdf地址
+	pictureurl varchar(500) NULL, -- 发票图片地址
+	invoicetime varchar(20) NULL, -- 开票时间
+	invoicecode varchar(20) NULL, -- 发票代码
+	invoiceno varchar(20) NULL, -- 发票号码
+	allelectronicinvoicenumber varchar(20) NULL, -- 数电票号码
+	extaxamount varchar(20) NULL, -- 不含税金额
+	taxamount varchar(20) NULL, -- 合计税额
+	orderamount varchar(20) NULL, -- 价税合计
+	payername varchar(100) NULL, -- 购方名称
+	payertaxno varchar(20) NULL, -- 购方税号
+	address varchar(100) NULL, -- 购方地址
+	telephone varchar(20) NULL, -- 购方电话
+	bankaccount varchar(200) NULL, -- 购方开户行及账号
+	invoicekind varchar(100) NULL, -- 发票种类
+	checkcode varchar(50) NULL, -- 校验码
+	qrcode varchar(500) NULL, -- 二维码
+	machinecode varchar(100) NULL, -- 税控设备号
+	ciphertext varchar(500) NULL, -- 发票密文
+	paperpdfurl varchar(500) NULL, -- 含底图纸票pdf地址
+	ofdurl varchar(500) NULL, -- 发票ofd地址
+	xmlurl varchar(500) NULL, -- 发票xml地址
+	clerk varchar(50) NULL, -- 开票员
+	payee varchar(50) NULL, -- 收款人
+	checker varchar(50) NULL, -- 复核人
+	saleraccount varchar(100) NULL, -- 销方银行账号
+	salertel varchar(20) NULL, -- 销方电话
+	saleraddress varchar(100) NULL, -- 销方地址
+	salertaxnum varchar(20) NULL, -- 销方税号
+	salename varchar(100) NULL, -- 销方名称
+	remark varchar(2000) NULL, -- 备注
+	productoilflag varchar(2) NULL, -- 成品油标志
+	imgurls varchar(1000) NULL, -- 图片地址
+	extensionnumber varchar(50) NULL, -- 分机号
+	terminalnumber varchar(50) NULL, -- 终端号
+	deptid varchar(50) NULL, -- 部门门店id
+	clerkid varchar(50) NULL, -- 开票员id
+	oldinvoicecode varchar(50) NULL, -- 对应蓝票发票代码
+	oldinvoiceno varchar(50) NULL, -- 对应蓝票发票号码
+	oldeleinvoicenumber varchar(50) NULL, -- 对应蓝票数电票号码
+	listflag varchar(2) NULL, -- 清单标志
+	listname varchar(50) NULL, -- 清单项目名称
+	phone varchar(50) NULL, -- 购方手机
+	notifyemail varchar(50) NULL, -- 购方邮箱推送邮箱
+	vehicleflag varchar(2) NULL, -- 是否机动车类专票
+	createtime varchar(30) NULL, -- 数据创建时间
+	updatetime varchar(30) NULL, -- 数据更新时间
+	stateupdatetime varchar(30) NULL, -- 发票状态更新时间
+	proxyinvoiceflag varchar(2) NULL, -- 代开标志
+	invoicedate varchar(30) NULL, -- 用于开票的订单的时间
+	invoicetype varchar(2) NULL, -- 开票类型
+	redreason varchar(200) NULL, -- 冲红原因
+	invalidtime varchar(30) NULL, -- 作废时间
+	invalidsource varchar(2) NULL, -- 作废来源
+	invalidreason varchar(200) NULL, -- 数电纸票作废原因
+	specificreason varchar(200) NULL, -- 其他作废原因详情
+	specificfactor varchar(50) NULL, -- 发票特定要素
+	invoicedifferencetype varchar(3) NULL, -- 数电发票差额征税开具方式
+	emailnotifystatus varchar(50) NULL, -- 邮箱交付状态
+	phonenotifystatus varchar(50) NULL, -- 手机交付状态
+	buyermanagername varchar(50) NULL, -- 购买方经办人姓名
+	managercardtype varchar(50) NULL, -- 经办人证件类型
+	managercardno varchar(50) NULL, -- 经办人证件号码
+	bfield1 varchar(500) NULL, -- 业务方自定义字段1
+	bfield2 varchar(500) NULL, -- 业务方自定义字段2
+	bfield3 varchar(500) NULL, -- 业务方自定义字段3
+	naturalpersonflag varchar(50) NULL, -- 购买方自然人标志
+	invoiceitems json NULL, -- 发票明细集合
+	vehicleinfo json NULL, -- 机动车销售统一发票中机动车相关信息
+	secondhandcarinfo json NULL, -- 二手车销售统一发票时才有值返回
+	invoicebuildinginfo json NULL, -- 数电建筑服务特定要素类型的发票时才有值
+	realpropertyrentinfo json NULL, -- 数电不动产经营租赁服务特定要素类型的发票
+	invoicetravellertransport json NULL, -- 数电旅客运输服务特定要素类型的发票时才有
+	invoicegoodstransports json NULL, -- 货物运输服务特定要素的数电票时才返回
+	differencevoucherinfolist json NULL, -- 数电票差额扣除凭证列表
+	additionalelementlist json NULL, -- 附加要素信息列表
+	CONSTRAINT pk_nn_invoiceresult PRIMARY KEY (balance_id, serialno, orderno)
+);
+COMMENT ON TABLE insur.nn_invoiceresult IS '自定义诺诺开票结果表';
+
+-- Column comments
+
+COMMENT ON COLUMN insur.nn_invoiceresult.balance_id IS '结账ID';
+COMMENT ON COLUMN insur.nn_invoiceresult.serialno IS '发票请求流水号';
+COMMENT ON COLUMN insur.nn_invoiceresult.orderno IS '订单编号';
+COMMENT ON COLUMN insur.nn_invoiceresult.status IS '发票状态';
+COMMENT ON COLUMN insur.nn_invoiceresult.statusmsg IS '发票状态描述';
+COMMENT ON COLUMN insur.nn_invoiceresult.failcause IS '失败原因';
+COMMENT ON COLUMN insur.nn_invoiceresult.pdfurl IS '发票pdf地址';
+COMMENT ON COLUMN insur.nn_invoiceresult.pictureurl IS '发票图片地址';
+COMMENT ON COLUMN insur.nn_invoiceresult.invoicetime IS '开票时间';
+COMMENT ON COLUMN insur.nn_invoiceresult.invoicecode IS '发票代码';
+COMMENT ON COLUMN insur.nn_invoiceresult.invoiceno IS '发票号码';
+COMMENT ON COLUMN insur.nn_invoiceresult.allelectronicinvoicenumber IS '数电票号码';
+COMMENT ON COLUMN insur.nn_invoiceresult.extaxamount IS '不含税金额';
+COMMENT ON COLUMN insur.nn_invoiceresult.taxamount IS '合计税额';
+COMMENT ON COLUMN insur.nn_invoiceresult.orderamount IS '价税合计';
+COMMENT ON COLUMN insur.nn_invoiceresult.payername IS '购方名称';
+COMMENT ON COLUMN insur.nn_invoiceresult.payertaxno IS '购方税号';
+COMMENT ON COLUMN insur.nn_invoiceresult.address IS '购方地址';
+COMMENT ON COLUMN insur.nn_invoiceresult.telephone IS '购方电话';
+COMMENT ON COLUMN insur.nn_invoiceresult.bankaccount IS '购方开户行及账号';
+COMMENT ON COLUMN insur.nn_invoiceresult.invoicekind IS '发票种类';
+COMMENT ON COLUMN insur.nn_invoiceresult.checkcode IS '校验码';
+COMMENT ON COLUMN insur.nn_invoiceresult.qrcode IS '二维码';
+COMMENT ON COLUMN insur.nn_invoiceresult.machinecode IS '税控设备号';
+COMMENT ON COLUMN insur.nn_invoiceresult.ciphertext IS '发票密文';
+COMMENT ON COLUMN insur.nn_invoiceresult.paperpdfurl IS '含底图纸票pdf地址';
+COMMENT ON COLUMN insur.nn_invoiceresult.ofdurl IS '发票ofd地址';
+COMMENT ON COLUMN insur.nn_invoiceresult.xmlurl IS '发票xml地址';
+COMMENT ON COLUMN insur.nn_invoiceresult.clerk IS '开票员';
+COMMENT ON COLUMN insur.nn_invoiceresult.payee IS '收款人';
+COMMENT ON COLUMN insur.nn_invoiceresult.checker IS '复核人';
+COMMENT ON COLUMN insur.nn_invoiceresult.saleraccount IS '销方银行账号';
+COMMENT ON COLUMN insur.nn_invoiceresult.salertel IS '销方电话';
+COMMENT ON COLUMN insur.nn_invoiceresult.saleraddress IS '销方地址';
+COMMENT ON COLUMN insur.nn_invoiceresult.salertaxnum IS '销方税号';
+COMMENT ON COLUMN insur.nn_invoiceresult.salename IS '销方名称';
+COMMENT ON COLUMN insur.nn_invoiceresult.remark IS '备注';
+COMMENT ON COLUMN insur.nn_invoiceresult.productoilflag IS '成品油标志';
+COMMENT ON COLUMN insur.nn_invoiceresult.imgurls IS '图片地址';
+COMMENT ON COLUMN insur.nn_invoiceresult.extensionnumber IS '分机号';
+COMMENT ON COLUMN insur.nn_invoiceresult.terminalnumber IS '终端号';
+COMMENT ON COLUMN insur.nn_invoiceresult.deptid IS '部门门店id';
+COMMENT ON COLUMN insur.nn_invoiceresult.clerkid IS '开票员id';
+COMMENT ON COLUMN insur.nn_invoiceresult.oldinvoicecode IS '对应蓝票发票代码';
+COMMENT ON COLUMN insur.nn_invoiceresult.oldinvoiceno IS '对应蓝票发票号码';
+COMMENT ON COLUMN insur.nn_invoiceresult.oldeleinvoicenumber IS '对应蓝票数电票号码';
+COMMENT ON COLUMN insur.nn_invoiceresult.listflag IS '清单标志';
+COMMENT ON COLUMN insur.nn_invoiceresult.listname IS '清单项目名称';
+COMMENT ON COLUMN insur.nn_invoiceresult.phone IS '购方手机';
+COMMENT ON COLUMN insur.nn_invoiceresult.notifyemail IS '购方邮箱推送邮箱';
+COMMENT ON COLUMN insur.nn_invoiceresult.vehicleflag IS '是否机动车类专票';
+COMMENT ON COLUMN insur.nn_invoiceresult.createtime IS '数据创建时间';
+COMMENT ON COLUMN insur.nn_invoiceresult.updatetime IS '数据更新时间';
+COMMENT ON COLUMN insur.nn_invoiceresult.stateupdatetime IS '发票状态更新时间';
+COMMENT ON COLUMN insur.nn_invoiceresult.proxyinvoiceflag IS '代开标志';
+COMMENT ON COLUMN insur.nn_invoiceresult.invoicedate IS '用于开票的订单的时间';
+COMMENT ON COLUMN insur.nn_invoiceresult.invoicetype IS '开票类型';
+COMMENT ON COLUMN insur.nn_invoiceresult.redreason IS '冲红原因';
+COMMENT ON COLUMN insur.nn_invoiceresult.invalidtime IS '作废时间';
+COMMENT ON COLUMN insur.nn_invoiceresult.invalidsource IS '作废来源';
+COMMENT ON COLUMN insur.nn_invoiceresult.invalidreason IS '数电纸票作废原因';
+COMMENT ON COLUMN insur.nn_invoiceresult.specificreason IS '其他作废原因详情';
+COMMENT ON COLUMN insur.nn_invoiceresult.specificfactor IS '发票特定要素';
+COMMENT ON COLUMN insur.nn_invoiceresult.invoicedifferencetype IS '数电发票差额征税开具方式';
+COMMENT ON COLUMN insur.nn_invoiceresult.emailnotifystatus IS '邮箱交付状态';
+COMMENT ON COLUMN insur.nn_invoiceresult.phonenotifystatus IS '手机交付状态';
+COMMENT ON COLUMN insur.nn_invoiceresult.buyermanagername IS '购买方经办人姓名';
+COMMENT ON COLUMN insur.nn_invoiceresult.managercardtype IS '经办人证件类型';
+COMMENT ON COLUMN insur.nn_invoiceresult.managercardno IS '经办人证件号码';
+COMMENT ON COLUMN insur.nn_invoiceresult.bfield1 IS '业务方自定义字段1';
+COMMENT ON COLUMN insur.nn_invoiceresult.bfield2 IS '业务方自定义字段2';
+COMMENT ON COLUMN insur.nn_invoiceresult.bfield3 IS '业务方自定义字段3';
+COMMENT ON COLUMN insur.nn_invoiceresult.naturalpersonflag IS '购买方自然人标志';
+COMMENT ON COLUMN insur.nn_invoiceresult.invoiceitems IS '发票明细集合';
+COMMENT ON COLUMN insur.nn_invoiceresult.vehicleinfo IS '机动车销售统一发票中机动车相关信息';
+COMMENT ON COLUMN insur.nn_invoiceresult.secondhandcarinfo IS '二手车销售统一发票时才有值返回';
+COMMENT ON COLUMN insur.nn_invoiceresult.invoicebuildinginfo IS '数电建筑服务特定要素类型的发票时才有值';
+COMMENT ON COLUMN insur.nn_invoiceresult.realpropertyrentinfo IS '数电不动产经营租赁服务特定要素类型的发票';
+COMMENT ON COLUMN insur.nn_invoiceresult.invoicetravellertransport IS '数电旅客运输服务特定要素类型的发票时才有';
+COMMENT ON COLUMN insur.nn_invoiceresult.invoicegoodstransports IS '货物运输服务特定要素的数电票时才返回';
+COMMENT ON COLUMN insur.nn_invoiceresult.differencevoucherinfolist IS '数电票差额扣除凭证列表';
+COMMENT ON COLUMN insur.nn_invoiceresult.additionalelementlist IS '附加要素信息列表';

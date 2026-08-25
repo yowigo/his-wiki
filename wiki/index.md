@@ -1,6 +1,6 @@
 # HIS 知识库
 
-**最后更新时间**: 2026-07-07
+**最后更新时间**: 2026-08-25
 **整理者**: Keiskei
 **知识库状态**: 持续完善中（医保文档已充实，HIS 标准化接口已入库）
 
@@ -30,6 +30,7 @@ his-wiki/
 │   │   ├── query-template.md          # 查询接口模板
 │   │   ├── third-party-integration.md # 第三方对接模板
 │   │   ├── insurance-plugin-template.md # 医保插件模板
+│   │   ├── electronic-invoice-plugin.md # 北京电子票据插件
 │   │   ├── isb-service-design.md          # ISB服务设计数据库操作
 │   │   ├── isb-signature-auth.md           # ISB接口签名认证
 │   │   ├── api-hl7-adt-a01.md         # HL7 ADT^A01
@@ -55,7 +56,17 @@ his-wiki/
 │   │   ├── outpatient-flow.md   # 门诊结算流程
 │   │   ├── inpatient-flow.md    # 住院结算流程
 │   │   ├── communication.md     # 通信层详解
-│   │   └── ca-signature.md      # CA签名模块
+│   │   ├── ca-signature.md      # CA签名模块
+│   │   ├── shanghai-5th.md      # 上海医保五期插件总览
+│   │   ├── error-code-handbook.md  # 医保错误码处理手册
+│   │   ├── deployment-checklist.md # 医院部署前置配置清单
+│   │   ├── reconcile.md         # 医保对账（日对账/结算对账）
+│   │   ├── self-pay-separation.md  # 自费分离结算改造方案
+│   │   ├── assembly-loading.md  # 程序集依赖/反射加载
+│   │   ├── guangdong-szsz.md    # 广东深圳（市直）医保
+│   │   ├── coding-tool.md       # 医保对码工具
+│   │   ├── traceability-code-flow.md  # 追溯码流通环节
+│   │   └── traceability-code-upload.md  # 追溯码上传查询模块（北京）
 │   │
 │   ├── patterns/                # 设计模式与经验
 │   │   ├── pattern-order-lifecycle.md
@@ -79,7 +90,8 @@ his-wiki/
 │   ├── database-query/           # 数据库查询指南
 │   │   ├── fee_schema_guide.md    # fee 库快速导览
 │   │   ├── fee_schema.json        # fee 库结构化 schema
-│   │   └── fee_schema_ddl.sql     # fee 库完整 DDL dump
+│   │   ├── fee_schema_ddl.sql     # fee 库完整 DDL dump
+│   │   └── pg-sql-runner.md       # DDL 批处理执行工具
 │   │
 │   └── work-log/                # 工作日志
 │       ├── 2026-04-15-summary.md
@@ -87,7 +99,13 @@ his-wiki/
 │
 └── raw/                         # 原始资料层（只增不改）
     ├── HIS接口文档1.0/          # 飞跃智慧系统标准化接口（15份docx）
-    ├── 医保开发/                # 医保开发原始资料
+    ├── 外部接口开发/            # 外部接口/医保开发原始资料
+    │   ├── 医保开发文档/        # 医保架构、接口契约、流程代码走查
+    │   ├── 上海医保项目五期/    # 五期规范 PDF/md、升级清单、错误码、部署清单、对账
+    │   ├── 广东深圳医保/        # 市直医保接口规范、审计报告、落实清单
+    │   └── 北京电子票据/        # 电子票据规范 V1.28、报文 0101/0103、表结构
+    ├── CPAPI/                   # CPAPI 框架资料
+    ├── 对码管理/                # 对码工具使用手册、ins_item.sql、分析
     ├── SunnyUI文档/             # SunnyUI 控件库原始文档（V3.9.7）
     └── skills技能/              # 技能手册 + 团队自研 skill
         ├── gstack技能手册.md     #   gstack 内置技能说明
@@ -143,9 +161,9 @@ his-wiki/
 | 规范文档 | 已完成 | 100% | 编码规范、接口规范、数据库规范、公司禁令 |
 | 业务文档 | 已完成 | 100% | 概览、门诊、住院、费用、检验、药品、患者 |
 | 接口模板 | 已完成 | 100% | 插件开发、CRUD、查询、第三方对接、医保插件 |
-| 医保开发 | 已完成 | 90% | 架构、接口、数据库、流程、通信、CA签名已整理 |
+| 医保开发 | 已完成 | 95% | 架构、接口、数据库、流程、通信、CA签名、上海五期、错误码、部署清单、对账、自费分离、程序集加载、广东深圳、对码工具、北京电子票据已整理 |
 | 标准化接口 | 进行中 | 40% | 总览、基础数据、挂号费用、医保集成已整理 |
-| 故障案例 | 进行中 | 30% | 按模块分子目录，已入库3个案例 |
+| 故障案例 | 进行中 | 40% | 按模块分子目录，已入库 6 个案例 |
 | 数据库查询 | 新建 | 5% | fee 库快速导览、结构化 schema、DDL dump |
 | 设计模式 | 进行中 | 50% | 医嘱状态机、GitHub备份经验已整理 |
 | WinForms UI 库 | 进行中 | 60% | SunnyUI 子站已收录 raw 子集：20 控件 + 2 窗体 + 多页框架 + 3 工具类（V3.9.7 同步） |
@@ -181,11 +199,22 @@ his-wiki/
 - [医保开发索引](medical-insurance/index.md)
 - [医保总控架构](medical-insurance/architecture.md)
 - [IInsureInterface接口契约](medical-insurance/iinsure-interface.md)
+- [上海医保五期插件](medical-insurance/shanghai-5th.md) — 双通道路由、19 接口、V1.0.6 升级状态
+- [医保错误码处理手册](medical-insurance/error-code-handbook.md)
+- [医院部署前置配置清单](medical-insurance/deployment-checklist.md)
+- [医保对账（日对账/结算对账）](medical-insurance/reconcile.md)
+- [自费分离结算改造方案](medical-insurance/self-pay-separation.md)
+- [程序集依赖/反射加载](medical-insurance/assembly-loading.md)
+- [广东深圳（市直）医保](medical-insurance/guangdong-szsz.md)
+- [医保对码工具](medical-insurance/coding-tool.md)
+- [北京电子票据插件](api/electronic-invoice-plugin.md)
 - [医保数据库表结构](medical-insurance/database-schema.md)
 - [门诊结算流程](medical-insurance/outpatient-flow.md)
 - [住院结算流程](medical-insurance/inpatient-flow.md)
 - [通信层详解](medical-insurance/communication.md)
 - [CA签名模块](medical-insurance/ca-signature.md)
+- [追溯码流通环节](medical-insurance/traceability-code-flow.md)
+- [追溯码上传查询模块](medical-insurance/traceability-code-upload.md)
 
 ### 故障排查
 
@@ -195,12 +224,17 @@ his-wiki/
 **医保（medical-insurance）**
 - [住院护士站打标后自动触发费用明细上传](troubleshooting/medical-insurance/issue-20260424-inpatient-nurse-fee-upload-after-item-marking.md)
 - [导入医保目录时 py_code 字段长度不足](troubleshooting/medical-insurance/issue-20260428-ins-item-py-code-too-long.md)
+- [医保原生动态库缺失导致框架层 ArgumentNullException](troubleshooting/medical-insurance/issue-20260606-native-dll-not-found.md)
+- [五期 SL01 对账落库失败与费用明细 SQL 语法错误排查](troubleshooting/medical-insurance/issue-20260807-sh5-sl01-reconcile-fee-type.md) — SQL 内 `//` 注释致 PG 语法错误、费用类型字段三语义（mr_fee）、双通道共用明细查询
+- [追溯码上传重复问题分析（GZ/SH/BJ 判重缺陷）](troubleshooting/medical-insurance/issue-20260824-traceability-duplicate-upload.md) — check-then-act 竞态、先占坑记账修复建议
 
 **电子票据（electronic-invoice）**
 - [找不到 ElectronicInvoiceInterfaceDelaut.dll](troubleshooting/electronic-invoice/issue-electronicinvoiceinterfacedelaut-not-found.md)
+- [开蓝票金蝶返回 serialNo 重复（"请勿重复提交" / 20013"流水号已开具发票"）](troubleshooting/electronic-invoice/issue-kingdee-duplicate-serialno.md)
 
 ### 数据库查询
 - [fee 库快速导览](database-query/fee_schema_guide.md) — 核心链路、表卡、排查入口（配套 DDL + JSON schema 同目录）
+- [pg-sql-runner](database-query/pg-sql-runner.md) — PostgreSQL DDL 批处理执行工具，双击即跑，便携免安装
 
 ### 设计模式
 - [医嘱状态机](patterns/pattern-order-lifecycle.md)
@@ -224,6 +258,19 @@ his-wiki/
 ---
 
 ## 操作日志
+
+### 2026-08-25
+- 医保插件知识全量整理入库（本批次）：
+  - raw 补档：上海五期（V1.0.6 通知、升级清单、错误码手册、部署清单、自费分离、对账手册、程序集依赖、SQL 脚本）、广东深圳医保（规范/审计报告/落实清单/改造指引）、北京电子票据（规范 V1.28、报文 0101/0103、表结构、实现摘要）、对码管理（ins_item.sql、已对照目录分析）
+  - 新建 wiki 页面 10 篇：上海五期插件总览、医保错误码处理手册、医院部署前置配置清单、医保对账、自费分离结算改造、程序集依赖/反射加载、广东深圳（市直）医保、北京电子票据插件、医保对码工具、追溯码重复上传排查案例
+  - 更新：追溯码上传查询模块（判重章节）、医保开发索引、知识库首页
+- 未入库：市直升级改造测试医院账号信息.md（含账号，避免进 GitHub 仓库）
+
+### 2026-08-07
+- 新增医保故障案例：五期 SL01 对账落库失败与费用明细 SQL 语法错误排查 — ① SL01 出参为空（前置机连不上）加友好提示；② 对账成功但落库无数据（DDL 未执行/静默失败），加固 ExteSql 影响行数检查；③ SQL 字符串内 `//` 注释致 PG 语法错误（PG 只认 `--`/`/* */`）；附带费用类型字段三语义对照（mr_fee 收费类型 / b_fee_item.fee_type 本地费用类型 / ins_item.fee_type 医保目录类型）与双通道共用明细查询影响面
+
+### 2026-07-28
+- 新增医保文档：追溯码流通环节（traceability-code-flow.md）— 8 个流通环节（3501-3513）全景图、Mermaid 数据流图、核心约束规则 6 条、广州/北京实现现状对比
 
 ### 2026-07-07
 - 新建数据库查询（database-query）分类：入库 fee 库快速导览、结构化 schema、完整 DDL dump
